@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
+import Discord from './Discord'
 import Tools from './Tools'
 import Logging from './Logging'
 
@@ -10,6 +11,7 @@ class Handlers {
     constructor() {
         scope = this // ffs
         this.handlers = {}
+        this.commands = {}
 
         this._REPLCommands = {
             'r': {
@@ -25,11 +27,33 @@ class Handlers {
                 h.handler(message.content, message.author, message.channel, message)
             }
         }
+
+
+        let tail    = message.content.split(' ')
+          , command = tail.shift()
+
+        if (scope.commands[command]) {
+            let h = scope.commands[command].handler(message.content, message.author, message.channel, message)
+            if (h instanceof Promise) {
+                return h.then(r => Discord.client.sendMessage(message.channel, r))
+            }
+            if (h instanceof String || typeof h === 'string') {
+                return Discord.client.sendMessage(message.channel, h)
+            }
+        }
     }
 
     load(handlerName) {
         try {
-            this.handlers[handlerName] = require(`../Handlers/${handlerName}`)
+            let h = require(`../Handlers/${handlerName}`)
+            if (h.handlers) this.handlers[handlerName] = h.handlers
+            if (h.commands) {
+                for (let k in h.commands) {
+                    if (this.commands[k]) return Logging.mlog('Handlers', `A command with trigger '${k}' already exists, it has not been overrided from the one from '${handlerName}'.`)
+                    this.commands[k] = h.commands[k]
+                    Logging.mlog('Handlers', `Loaded command '${k}' (${handlerName}).`)
+                }
+            }
             Logging.mlog('Handlers', `Loaded handler '${handlerName}'.`)
         }
         catch (e) {

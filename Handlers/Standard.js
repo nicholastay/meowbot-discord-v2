@@ -1,14 +1,14 @@
-import Discord from '../Core/Discord'
-
-const Standard = [
-    {
-        description: 'Basic info about bot command.',
-        handler: (message, author, channel, data) => {
-            if (message === '~meowbot') {
-                Discord.client.sendMessage(channel, 'meow meow meow! i\'m nexerq\'s little cat helper! nya!')
+class Standard {
+    get commands() {
+        return {
+            '~meowbot': {
+                description: 'Basic info about bot command.',
+                handler: () => {
+                    return 'meow meow meow! i\'m nexerq\'s little cat helper! nya!'
+                }
             }
         }
     }
-]
+}
 
-export default Standard
+export default new Standard
