@@ -7,6 +7,7 @@ import Logging from './Logging'
 class Client {
     constructor() {
         this.client = null
+        this.aliveSince = null
     }
 
     connect() {
@@ -14,8 +15,10 @@ class Client {
 
         this.client.on('ready', () => {
             Logging.mlog('Discord', 'Connected to Discord.')
+            this.aliveSince = new Date()
         })
         this.client.on('disconnected', () => {
+            this.aliveSince = null
             Logging.mlog('Discord', 'Connection dropped to Discord, will attempt reconnections per 2.5mins...')
             let reconnInterval = setInterval(() => {
                 Logging.mlog('Discord', 'Reconnecting to Discord...')

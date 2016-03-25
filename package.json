@@ -18,7 +18,8 @@
     "babel-repl": "0.0.6",
     "chalk": "^1.1.1",
     "discord.js": "^6.1.0",
-    "fast-strftime": "^1.1.1"
+    "fast-strftime": "^1.1.1",
+    "humanize-duration": "^3.7.0"
   },
   "devDependencies": {
     "eslint": "^2.4.0"
