@@ -1,0 +1,24 @@
+{
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 6
+  },
+  "parser": "babel-eslint",
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "rules": {
+    "quotes": [2, "single"],
+    "indent": "warn",
+    "no-console": "off",
+    "eqeqeq": "warn",
+    "semi": [2, "never"],
+    "no-var": "warn",
+    "prefer-arrow-callback": "warn",
+    "prefer-spread": "warn",
+    "prefer-rest-params": "warn",
+    "prefer-template": "warn",
+    "object-curly-spacing": [2, "always"]
+  }
+}
