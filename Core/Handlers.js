@@ -10,6 +10,13 @@ class Handlers {
     constructor() {
         scope = this // ffs
         this.handlers = {}
+
+        this._REPLCommands = {
+            'r': {
+                help: '[Handlers] Reloads all message handlers',
+                action: this.reloadAll.bind(this)
+            }
+        }
     }
 
     handleMessage(message) {
@@ -47,14 +54,14 @@ class Handlers {
     }
 
     _loadunload(unload) {
-        Logging.mlog('Handlers', `${unload ? 'Un' : 'L'}oading all handlers...`)
+        Logging.mlog('Handlers', `${unload ? 'Unl' : 'L'}oading all handlers...`)
         for (let handler of fs.readdirSync(path.join(__dirname, '../Handlers'))) {
             if (path.extname(handler) !== '.js') return
 
-            if (unload) return this.unload(handler.replace('.js', ''))
-            this.load(handler.replace('.js', ''))
+            if (unload) this.unload(handler.replace('.js', ''))
+            else this.load(handler.replace('.js', ''))
         }
-        Logging.mlog('Handlers', `All handlers ${unload ? 'un' : 'l'}oaded.`)
+        Logging.mlog('Handlers', `All handlers ${unload ? 'unl' : 'l'}oaded.`)
     }
 
     reloadAll() {

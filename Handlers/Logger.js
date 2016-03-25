@@ -2,7 +2,7 @@ import chalk from 'chalk'
 
 import Logging from '../Core/Logging'
 
-let Logger = [
+const Logger = [
     {
         description: 'Internal logging',
         handler: (message, author, channel, data) => {

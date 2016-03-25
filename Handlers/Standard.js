@@ -1,6 +1,6 @@
 import Discord from '../Core/Discord'
 
-let Standard = [
+const Standard = [
     {
         description: 'Basic info about bot command.',
         handler: (message, author, channel, data) => {

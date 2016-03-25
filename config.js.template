@@ -1,0 +1,10 @@
+const config = {
+    discord: {
+        token: 'bot token'
+        // OR
+        username: 'user',
+        password: ''
+    }
+}
+
+export default config

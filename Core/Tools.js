@@ -1,4 +1,4 @@
-let Tools = {
+const Tools = {
     hotUnload: (filename) => {
         if (require.cache[require.resolve(filename)]) {
             delete(require.cache[require.resolve(filename)])
