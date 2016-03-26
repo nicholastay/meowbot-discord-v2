@@ -17,7 +17,7 @@
     "babel-register": "^6.7.2",
     "babel-repl": "0.0.6",
     "chalk": "^1.1.1",
-    "discord.js": "^6.1.0",
+    "discord.js": "github:hydrabolt/discord.js#74c06f7",
     "fast-strftime": "^1.1.1",
     "humanize-duration": "^3.7.0"
   },

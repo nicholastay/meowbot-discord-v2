@@ -1,6 +1,8 @@
 import humanizeDuration from 'humanize-duration'
 
+import Config from '../Core/Config'
 import Discord from '../Core/Discord'
+import Logging from '../Core/Logging'
 
 class Standard {
     get commands() {
@@ -24,8 +26,18 @@ class Standard {
                 description: 'Bot join server information over PM only.',
                 reply: true,
                 general: false,
-                handler: () => {
-                    return 'Hi! Unfortunately currently there is no way to get MeowBot to join your own server, please check back another time!~ meow!'
+                handler: (params) => {
+                    if (Discord.client.user.bot && !Config.discord.oauthId) {
+                        Logging.mlog('StandardM', 'A user is trying to make bot join their server! Please set discord.oauthId in your config with your bot\'s OAuth ID!')
+                        return 'Hi! Unfortunately currently there is no way to get MeowBot to join your own server, please check back another time!~ meow!'
+                    }
+                    if (!Discord.client.user.bot) {
+                        if (!params[1]) return 'You must provide an invite ID/URL for me to join!...'
+                        return Discord.client.joinServer(params[1])
+                                             .then(server => { return `Joined your server - ${server.name} (${server.id}) <Owned by ${server.owner.username}#${server.owner.discriminator}>` })
+                    }
+
+                    return `To allow me access to your server, please use this link! - https://discordapp.com/oauth2/authorize?scope=bot&client_id=${Config.discord.oauthId}`
                 }
             },
             'serverinfo': {

@@ -1,7 +1,8 @@
 const config = {
     prefix: '!', // or use '$mention$' to indicate a mention as prefix, or remove the key to use default ('!')
     discord: {
-        token: 'bot token'
+        token: 'bot token',
+        oauthId: '' // optional, if you want to give them the oauth join url thru the !join command
         // OR
         username: 'user',
         password: ''
