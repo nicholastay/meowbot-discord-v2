@@ -56,6 +56,27 @@ Members: Aware of ${channel.server.members.length} members.
 Roles: Aware of ${channel.server.roles.length} roles.
 ${'```'}`
                 }
+            },
+            'userinfo': {
+                description: 'Returns information about a user on the server it was issued on.',
+                pm: false,
+                handler: (params, author, channel) => {
+                    let user = author // default
+                    if (params[0]) {
+                        user = channel.server.members.get('name', params.join(' '))
+                        if (!user) return `I do not know of a user called ${params.join(' ')} on this server.`
+                    }
+
+                    return `Some information I know about ${user.equals(author) ? 'you' : 'that user'}:
+${'```'}
+Name: ${user.username}
+User ID: ${user.id}
+Discriminator: #${user.discriminator}
+Avatar: ${user.avatarURL}
+Bot?: ${user.bot ? 'Yes' : 'No'}
+Status: ${user.status}${user.game ? ` (playing ${user.game.name})` : ''}
+${'```'}`
+                }
             }
         }
     }
