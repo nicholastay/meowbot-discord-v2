@@ -22,6 +22,10 @@ class Handlers {
             'r': {
                 help: '[Handlers] Reloads one message handler with the name of it',
                 action: (h) => this.reload(h)
+            },
+            'l': {
+                help: '[Handlers] Load a new message handler with the name of it',
+                action: (h) => this.load(h)
             }
         }
     }

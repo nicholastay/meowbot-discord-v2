@@ -2,6 +2,7 @@ import humanizeDuration from 'humanize-duration'
 
 import Config from '../Core/Config'
 import Discord from '../Core/Discord'
+import Handlers from '../Core/Handlers'
 import Logging from '../Core/Logging'
 
 class Standard {
@@ -20,6 +21,17 @@ class Standard {
                 handler: () => {
                     let uptime = humanizeDuration(new Date() - Discord.aliveSince, { round: true })
                     return `MeowBot has been up, online and serving you for: ${uptime}.`
+                }
+            },
+            'help': {
+                description: 'Shows the help description for a command.',
+                handler: (params) => {
+                    if (!params[0]) return
+
+                    let cmd = params[0].replace(Config.prefix, '')
+
+                    if (!params[0].startsWith(Config.prefix) || !Handlers.commands[cmd]) return `There is no such command as '${params[0]}'`
+                    return `${'`'}${params[0]}${'`'}: ${'`'}${Handlers.commands[cmd].description}${'`'}`
                 }
             },
             'join': {
