@@ -30,7 +30,17 @@ class Discord {
         })
         this.client.on('message', Handlers.handleMessage)
 
+        this.sendMessage = this.client.sendMessage // direct passthru
+
         this.login()
+    }
+
+    reply(data, message) {
+        let firstLetter
+        if (data.private) firstLetter = message[0].toUpperCase() // caps first letter for better appearance in PM replies
+        else firstLetter = message[0].toLowerCase() // do the opposite
+
+        this.client.reply(data, firstLetter + message.substr(1, message.length))
     }
 
     login() {

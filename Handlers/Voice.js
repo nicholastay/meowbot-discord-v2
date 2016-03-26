@@ -10,6 +10,7 @@ class Voice {
             'voice': {
                 description: 'Joins a voice channel or leaves one if its already in it.',
                 permissionLevel: 1,
+                pm: false,
                 noPermissionsResponse: 'You require to be a server mod to make MeowBot join a voice channel. *(Admins, ensure you at least are in a role with name \'MeowMods\')*',
                 reply: true,
                 handler: (params, author, channel, data) => {

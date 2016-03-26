@@ -74,11 +74,11 @@ class Handlers {
               , r = scope.commands[command].reply
 
             if (h instanceof Promise) {
-                return h.then(p => Discord.client[r ? 'reply' : 'sendMessage'](message, p))
+                return h.then(p => Discord[r ? 'reply' : 'sendMessage'](message, p))
                         .catch(Logging.log)
             }
             if (h instanceof String || typeof h === 'string') {
-                return Discord.client[r ? 'reply' : 'sendMessage'](message, h)
+                return Discord[r ? 'reply' : 'sendMessage'](message, h)
                               .catch(Logging.log)
             }
         }
