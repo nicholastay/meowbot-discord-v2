@@ -30,7 +30,7 @@ class Standard {
 
                     let cmd = params[0].replace(Config.prefix, '')
 
-                    if (!params[0].startsWith(Config.prefix) || !Handlers.commands[cmd]) return `There is no such command as '${params[0]}'`
+                    if (!params[0].startsWith(Config.prefix) || !Handlers.commands[cmd] || Handlers.commands[cmd].hidden) return `There is no such command as '${params[0]}'` // act dumb on a hidden command :P
                     return `${'`'}${params[0]}${'`'}: ${'`'}${Handlers.commands[cmd].description}${'`'}`
                 }
             },

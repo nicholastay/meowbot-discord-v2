@@ -30,7 +30,7 @@ class Discord {
         })
         this.client.on('message', Handlers.handleMessage)
 
-        this.sendMessage = this.client.sendMessage // direct passthru
+        this.sendMessage = this.client.sendMessage.bind(this.client) // direct passthru
 
         this.login()
     }

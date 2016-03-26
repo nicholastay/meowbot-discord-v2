@@ -67,7 +67,10 @@ class Handlers {
             }
 
             if (scope.commands[command].permissionLevel) {
-                if (scope.commands[command].permissionLevel > perms) return Discord.client.reply(message, (scope.commands[command].noPermissionsResponse || 'You do not have permissions to run that command.'))
+                if (scope.commands[command].permissionLevel > perms) {
+                    if (scope.commands[command.hidden]) return // shutup on a hidden command
+                    return Discord.client.reply(message, (scope.commands[command].noPermissionsResponse || 'You do not have permissions to run that command.'))
+                }
             }
 
             let h = scope.commands[command].handler(params, message.author, message.channel, message)
