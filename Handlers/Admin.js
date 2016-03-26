@@ -1,7 +1,8 @@
 /*eslint-disable no-unused-vars */ // shh eslint we need these vars for eval
-const Discord = require('../Core/Discord')
+const Discord  = require('../Core/Discord')
+    , Database = require('../Core/Database')
     , Handlers = require('../Core/Handlers')
-    , Tools = require('../Core/Tools')
+    , Tools    = require('../Core/Tools')
 
 class Admin {
     constructor() {

@@ -7,7 +7,8 @@ const config = {
         // OR
         username: 'user',
         password: ''
-    }
+    },
+    database: 'database.db' // optional: remove the key to use default 'MeowBot.db' - path can be absolute or relative (to this directory, the root of MeowBot)
 }
 
 export default config
