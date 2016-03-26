@@ -31,13 +31,15 @@ class Standard {
                         Logging.mlog('StandardM', 'A user is trying to make bot join their server! Please set discord.oauthId in your config with your bot\'s OAuth ID!')
                         return 'Hi! Unfortunately currently there is no way to get MeowBot to join your own server, please check back another time!~ meow!'
                     }
+
+                    let generalMsg = '\nSome general info: The general roles that MeowBot uses are *MeowMods* and *MeowAdmins*. You should make these two roles add yourself to the *MeowAdmins* role, and any server mods to the other. These roles give certain permissions in the bot to these users to do certain things. For certain commands you may also need to give these roles certain permissions for them to function properly.'
                     if (!Discord.client.user.bot) {
                         if (!params[1]) return 'You must provide an invite ID/URL for me to join!...'
                         return Discord.client.joinServer(params[1])
-                                             .then(server => { return `Joined your server - ${server.name} (${server.id}) <Owned by ${server.owner.username}#${server.owner.discriminator}>` })
+                                             .then(server => { return `Joined your server - ${server.name} (${server.id}) <Owned by ${server.owner.username}#${server.owner.discriminator}>\n${generalMsg}` })
                     }
 
-                    return `To allow me access to your server, please use this link! - https://discordapp.com/oauth2/authorize?scope=bot&client_id=${Config.discord.oauthId}`
+                    return `To allow me access to your server, please use this link! - https://discordapp.com/oauth2/authorize?scope=bot&client_id=${Config.discord.oauthId}\n${generalMsg}`
                 }
             },
             'serverinfo': {

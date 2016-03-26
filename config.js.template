@@ -1,4 +1,5 @@
 const config = {
+    admins: ['62125999352975360'],
     prefix: '!', // or use '$mention$' to indicate a mention as prefix, or remove the key to use default ('!')
     discord: {
         token: 'bot token',

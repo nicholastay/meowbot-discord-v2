@@ -35,7 +35,7 @@ class Handlers {
         // Basic low-level message handlers
         for (let k in scope.handlers) {
             for (let h of scope.handlers[k]) {
-                if (message.self && !h.allowSelf) return // since this is a more crude handler, allow such behavior if explicitly set
+                if (message.self && !h.allowSelf) continue // since this is a more crude handler, allow such behavior if explicitly set
                 h.handler(message.content, message.author, message.channel, message)
             }
         }
@@ -51,6 +51,20 @@ class Handlers {
 
         if (scope.commands[command]) {
             if ((scope.commands[command].general && message.private) || (scope.commands[command].pm && !message.private)) return // if in a general server chat and its a pm or other way round dont allow it based on command settings
+
+            // Basic permissions
+            // 0 = general nobody, 1 = server mod, 2 = server admin, 3 = bot admin
+            let perms = 0
+            if (Config.admins.indexOf(message.author.id) > -1) perms = 3
+            else {
+                let userRoles = message.channel.server.rolesOfUser(message.author)
+                if (userRoles.find(r => r.name === 'MeowAdmins')) perms = 2
+                else if (userRoles.find(r => r.name === 'MeowMods')) perms = 1
+            }
+
+            if (scope.commands[command].permissionLevel) {
+                if (scope.commands[command].permissionLevel > perms) return Discord.client.reply(message, (scope.commands[command].noPermissionsResponse || 'You do not have permissions to run that command.'))
+            }
 
             let h = scope.commands[command].handler(params, message.author, message.channel, message)
               , r = scope.commands[command].reply
