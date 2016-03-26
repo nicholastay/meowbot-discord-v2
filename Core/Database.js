@@ -6,17 +6,24 @@ import Logging from './Logging'
 
 class Database {
     constructor() {
-        this.db = new nedb({
-            filename: path.resolve(__dirname, '../', (Config.database || 'MeowBot.db'))
-        })
-        this.db.nedb.persistence.setAutocompactionInterval(45 * 60 * 1000) // compact the db every 45mins
+        this.store = path.resolve(__dirname, '../', (Config.databasePath || './Database'))
+
+        this.db = {
+            Commands: new nedb({ filename: path.join(this.store, 'Commands.db') })
+        }
+
+        for (let k in this.db) { // set options for every datastore
+            this.db[k].nedb.persistence.setAutocompactionInterval(45 * 60 * 1000) // compact the db every 45mins
+        }
     }
 
     load() {
-        Logging.mlog('Database', 'Loading database from file...')
-        this.db.loadDatabase()
-               .then(() => Logging.mlog('Database', 'Database loaded successfully.'))
-               .catch(err => Logging.mlog('Database', `Error loading the database... - ${err}`))
+        Logging.mlog('Database', 'Loading database(s) from file...')
+        for (let k in this.db) {
+            this.db[k].loadDatabase()
+                      .then(() => Logging.mlog('Database', `'${k}' database store loaded successfully.`))
+                      .catch(err => Logging.mlog('Database', `Error loading the database... - ${err}`))
+        }
     }
 }
 

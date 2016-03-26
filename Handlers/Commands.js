@@ -1,4 +1,4 @@
-import { db } from '../Core/Database'
+import { db as Database } from '../Core/Database'
 import Discord from '../Core/Discord'
 
 class Commands {
@@ -14,11 +14,11 @@ class Commands {
                     let command  = params.shift()
                       , response = params.join(' ')
 
-                    let existing = await db.findOne({ command, server: channel.server.id })
+                    let existing = await Database.Commands.findOne({ command, server: channel.server.id })
                     if (existing) return 'This command already exists. If you wish to edit it please remove it then recreate it to confirm such an action.'
 
-                    return db.insert({ command, response, server: channel.server.id })
-                             .then(() => { return `The command '${command}' was sucessfully added.` })
+                    return Database.Commands.insert({ command, response, server: channel.server.id })
+                                            .then(() => { return `The command '${command}' was sucessfully added.` })
                 }
             },
             'removecommand': {
@@ -30,11 +30,11 @@ class Commands {
                 handler: async (params, author, channel) => {
                     let command = params.shift()
 
-                    let removeCommand = await db.findOne({ command, server: channel.server.id })
+                    let removeCommand = await Database.Commands.findOne({ command, server: channel.server.id })
                     if (!removeCommand) return 'This command does not exist, I cannot remove a command that doesn\'t exist, baka!'
 
-                    return db.remove(removeCommand)
-                             .then(() => { return 'The command was successfully removed.' })
+                    return Database.Commands.remove(removeCommand)
+                                            .then(() => { return 'The command was successfully removed.' })
                 }
             }
         }
@@ -47,7 +47,7 @@ class Commands {
                 handler: async (message, author, channel) => {
                     let command = message.split(' ').shift()
 
-                    let dbResp = await db.findOne({ command, server: channel.server.id })
+                    let dbResp = await Database.Commands.findOne({ command, server: channel.server.id })
                     if (!dbResp) return
 
                     Discord.sendMessage(channel, dbResp.response)

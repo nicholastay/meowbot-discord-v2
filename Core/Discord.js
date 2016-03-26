@@ -40,7 +40,7 @@ class Discord {
         if (data.private) firstLetter = message[0].toUpperCase() // caps first letter for better appearance in PM replies
         else firstLetter = message[0].toLowerCase() // do the opposite
 
-        this.client.reply(data, firstLetter + message.substr(1, message.length))
+        return this.client.reply(data, firstLetter + message.substr(1, message.length))
     }
 
     login() {
