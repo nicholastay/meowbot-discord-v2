@@ -4,7 +4,7 @@ import Config from './Config'
 import Handlers from './Handlers'
 import Logging from './Logging'
 
-class Client {
+class Discord {
     constructor() {
         this.client = null
         this.aliveSince = null
@@ -47,4 +47,4 @@ class Client {
     }
 }
 
-export default new Client
+export default new Discord

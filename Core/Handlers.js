@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 
+import Config from './Config'
 import Discord from './Discord'
 import Tools from './Tools'
 import Logging from './Logging'
@@ -14,26 +15,44 @@ class Handlers {
         this.commands = {}
 
         this._REPLCommands = {
-            'r': {
-                help: '[Handlers] Reloads all message handlers',
+            'ra': {
+                help: '[Handlers] Reloads all message handler(s)',
                 action: this.reloadAll.bind(this)
+            },
+            'r': {
+                help: '[Handlers] Reloads one message handler with the name of it',
+                action: (h) => this.reload(h)
             }
         }
     }
 
     handleMessage(message) {
+        // General information
+        message.private = message.channel instanceof require('discord.js').PMChannel
+        message.self = message.author.id === Discord.client.user.id
+
+
+        // Basic low-level message handlers
         for (let k in scope.handlers) {
             for (let h of scope.handlers[k]) {
+                if (message.self && !h.allowSelf) return // since this is a more crude handler, allow such behavior if explicitly set
                 h.handler(message.content, message.author, message.channel, message)
             }
         }
 
 
-        let tail    = message.content.split(' ')
-          , command = tail.shift()
+        // Higher level command handlers
+        if (message.self) return // no commands allowed to be by self
+        let prefix = (Config.prefix === '$mention$') ? `<@${Discord.user.id}> ` : (Config.prefix || '!')
+        if (!message.content.startsWith(prefix)) return
+
+        let params  = message.content.replace(prefix, '').split(' ') // strip prefix & leave as array of params
+          , command = params.shift()
 
         if (scope.commands[command]) {
-            let h = scope.commands[command].handler(message.content, message.author, message.channel, message)
+            if ((scope.commands[command].general && message.private) || (scope.commands[command].pm && !message.private)) return // if in a general server chat and its a pm or other way round dont allow it based on command settings
+
+            let h = scope.commands[command].handler(params, message.author, message.channel, message)
               , r = scope.commands[command].reply
 
             if (h instanceof Promise) {
@@ -50,12 +69,20 @@ class Handlers {
     load(handlerName) {
         try {
             let h = require(`../Handlers/${handlerName}`)
-            if (h.handlers) this.handlers[handlerName] = h.handlers
+            if (h.handlers) {
+                if (!Array.isArray(h.handlers)) return
+                this.handlers[handlerName] = h.handlers
+                Logging.mlog('Handlers', `Loaded ${h.handlers.length} message handler(s) from '${handlerName}'.`)
+            }
             if (h.commands) {
                 for (let k in h.commands) {
-                    if (this.commands[k]) return Logging.mlog('Handlers', `A command with trigger '${k}' already exists, it has not been overrided from the one from '${handlerName}'.`)
+                    if (this.commands[k]) {
+                        Logging.mlog('Handlers', `A command with trigger '${k}' already exists, it has not been overrided from the one from '${handlerName}'.`)
+                        continue
+                    }
                     this.commands[k] = h.commands[k]
-                    Logging.mlog('Handlers', `Loaded command '${k}' (${handlerName}).`)
+                    this.commands[k].fromHandler = handlerName
+                    Logging.mlog('Handlers', `Loaded command '${k}' (from '${handlerName}').`)
                 }
             }
             Logging.mlog('Handlers', `Loaded handler '${handlerName}'.`)
@@ -68,31 +95,42 @@ class Handlers {
     unload(handlerName) {
         if (Tools.hotUnload(`../Handlers/${handlerName}`)) {
             delete(this.handlers[handlerName])
+            if (Object.keys(this.commands).length > 0) {
+                for (let k in this.commands) {
+                    if (this.commands[k].fromHandler === handlerName) delete this.commands[k]
+                }
+            }
             return Logging.mlog('Handlers', `Unloaded handler '${handlerName}'.`)
         }
         Logging.mlog('Handlers', `'${handlerName}' could not be unloaded, nothing has changed.`)
     }
 
+    reload(handlerName) {
+        this.unload(handlerName)
+        this.load(handlerName)
+    }
+
     loadAll() {
-        this._loadunload(false)
+        this._loadunloadAll(false)
     }
 
     unloadAll() {
-        this._loadunload(true)
+        this._loadunloadAll(true)
     }
 
-    _loadunload(unload) {
-        Logging.mlog('Handlers', `${unload ? 'Unl' : 'L'}oading all handlers...`)
+    _loadunloadAll(unload) {
+        Logging.mlog('Handlers', `${unload ? 'Unl' : 'L'}oading all handler(s)...`)
         for (let handler of fs.readdirSync(path.join(__dirname, '../Handlers'))) {
-            if (path.extname(handler) !== '.js') return
+            if (path.extname(handler) !== '.js') continue
 
             if (unload) this.unload(handler.replace('.js', ''))
             else this.load(handler.replace('.js', ''))
         }
-        Logging.mlog('Handlers', `All handlers ${unload ? 'unl' : 'l'}oaded.`)
+        Logging.mlog('Handlers', `All handler(s) ${unload ? 'unl' : 'l'}oaded.`)
     }
 
     reloadAll() {
+        this.commands = {} // reduced strain, no iteration
         this.unloadAll()
         this.loadAll()
     }

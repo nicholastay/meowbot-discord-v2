@@ -1,4 +1,5 @@
 const config = {
+    prefix: '!', // or use '$mention$' to indicate a mention as prefix, or remove the key to use default ('!')
     discord: {
         token: 'bot token'
         // OR
