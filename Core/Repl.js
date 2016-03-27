@@ -1,4 +1,4 @@
-import repl from 'babel-repl'
+import repl from 'repl'
 
 import Logging from './Logging'
 
@@ -10,7 +10,7 @@ class Repl {
     start() {
         Logging.mlog('Repl', 'Starting REPL server...')
         this.server = repl.start({
-            prompt: 'MeowES6> '
+            prompt: 'MeowV2> '
         })
         console.log('\n')
     }
