@@ -1,3 +1,5 @@
+import chalk from 'chalk'
+
 import './Core/Config'
 import Database from './Core/Database'
 import Discord from './Core/Discord'
@@ -31,8 +33,8 @@ process.on('uncaughtException', err => {
         return
     }
 
-    Logging.log('FATAL UNCAUGHT EXCEPTION, WE\'RE GOING DOWN!')
-    Logging.log(err)
-    Logging.log(err.stack)
+    console.log('\n')
+    Logging.log(chalk.red('FATAL UNCAUGHT EXCEPTION, WE\'RE GOING DOWN!'))
+    Logging.log(chalk.red(err.stack))
     process.exit(1)
 })

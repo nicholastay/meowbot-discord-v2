@@ -14,6 +14,7 @@ class Voice {
         this._nowPlaying = null
         this._intent = null
         this.queue = []
+        this.volume = 1
     }
 
     get intent() {
@@ -25,6 +26,12 @@ class Voice {
             intent.on('end', () => {
                 this.intent = null
                 this.nowPlaying = null
+
+                if (this.voting) {
+                    Discord.sendMessage(this.textChannel, `The vote started by ${this.voting.author.name} has been cancelled, as the track has now stopped playing.`)
+                    this.voting = null
+                }
+
                 this.playNext()
             })
         }
@@ -72,6 +79,7 @@ class Voice {
                                   .joinVoiceChannel(voiceChan)
                                   .then(() => {
                                       this.textChannel = channel // Monitor this channel for play commands and stuff
+                                      this.volume = 1
                                       return `Joined the voice channel '${voiceChan.name}' successfully! All notification updates will be sent to this channel, and any commands you wish to use to play music, etc, should be done in this channel.`
                                   })
                                   .catch(e => { return `There was an error joining voice... *${e}*` })
@@ -108,7 +116,7 @@ class Voice {
                 pm: false,
                 handler: async (params) => {
                     if (!Discord.client.voiceConnection) return
-                    this.intent = await Discord.client.voiceConnection.playFile(params.join(' '))
+                    this.intent = await Discord.client.voiceConnection.playFile(params.join(' '), { volume: this.volume })
                     return `**[ADMIN ACTION]** - Directly playing: ${params.join(' ')}`
                 }
             },
@@ -156,6 +164,87 @@ class Voice {
 
                     return `I do not know how to handle and play '${lookup}'. Please use a supported format.`
                 }
+            },
+            'volume': {
+                description: 'Sets the volume that MeowBot should play at (percentage based). When joining a voice channel, this defaults to 100%. Command must be used in a text<->voice bound channel.',
+                permissionLevel: 1,
+                pm: false,
+                handler: (params, author, channel) => {
+                    if (!this.textChannel || !channel.equals(this.textChannel) || !params[0]) return
+
+                    let volume = Number(params[0].replace(/%$/, ''))
+                    if (!volume) return 'Invalid volume to set, must be in the form of \'77[%]\'.'
+
+                    this.volume = volume / 100
+                    Discord.client.voiceConnection.setVolume(volume / 100)
+                    return `Volume has been set to: ${volume}%`
+                }
+            },
+            'skip': {
+                description: 'Vote/start a vote to skip the currently playing track. Must be used in a text<->voice bound channel.',
+                pm: false,
+                handler: (params, author, channel) => {
+                    if (!this.textChannel || !channel.equals(this.textChannel)) return
+
+                    if (!this.voting) {
+                        // Starting a new vote.
+                        let members = Discord.client.voiceConnection.voiceChannel.members // voice channel members
+                        if (!members.get('id', author.id)) return `${author.mention()}, you are not in the voice channel, you do not have a right to vote/start a vote.`
+
+                        if (members.length === 2) {
+                            // 2 members, only bot + user, just skip
+                            Discord.client.voiceConnection.stopPlaying()
+                            return `${author.mention()}, you are the only member in the voice channel with me right now, skipping...`
+                        }
+
+                        // voting
+                        this.voting = {
+                            author,
+                            members: members.map(i => i.id), // lock the members by storing their IDs, any new members will be ignored to this vote
+                            voted: [author.id], // only the author voted, obviously
+                            votes: 1,
+                            votesRequired: Math.ceil((members.length - 1) / 2), // majority
+                            timeout: setTimeout(() => {
+                                let author = this.voting.author
+                                this.voting = null
+                                return `The vote started by ${author.name} has now timed out. A new vote must be started to skip the current track.`
+                            }, 90 * 1000) // 90 second timeout
+                        }
+                        if (members.length === 3) this.voting.votesRequired = 2 // bot + 2 users, 2 users one user vote is unfair, require 2
+
+                        return `${author.name} has voted to skip the current track *(${this.nowPlaying.name})*. Starting a vote with the current members of the voice channel. ${this.voting.votesRequired} votes are required to skip. There is currently 1 vote. Time remaining: 90 second(s)`
+                    } else {
+                        // Using a current vote.
+                        if (this.voting.members.indexOf(author.id) < 0) {
+                            // invalid user from those casted
+                            return `${author.mention()}, you were not in the voice channel at the time the voting started. You do not have a right to vote in this round.`
+                        }
+                        if (this.voting.voted.indexOf(author.id) < 0) {
+                            return `${author.mention()}, you have already voted to skip for this round!`
+                        }
+
+                        this.voting.voted.push(author.id)
+                        this.voting.votes++
+
+                        if (this.voting.votes >= this.voting.votesRequired) {
+                            Discord.client.voiceConnection.stopPlaying()
+                            return `${author.name} has voted to skip the current track *(${this.nowPlaying.name})*. **VOTING SUCCEEDED, SKIPPING CURRENT TRACK.**`
+                        }
+
+                        return `${author.name} has voted to skip the current track *(${this.nowPlaying.name})*. **Voting progress: ${this.voting.votes}/${this.voting.votesRequired} (${this.voting.votesRequired - this.voting.votes} votes still required).**`
+                    }
+                }
+            },
+            'fskip': {
+                description: 'Forcefully skips the currently playing track.',
+                permissionLevel: 1,
+                pm: false,
+                retry: true,
+                handler: () => {
+                    if (!Discord.client.voiceConnection || !this.textChannel) return
+                    Discord.client.voiceConnection.stopPlaying()
+                    return '**[MOD ACTION]** Forcefully skipped the currently playing track.'
+                }
             }
         }
     }
@@ -172,7 +261,7 @@ class Voice {
         let nowPlay = this.queue.shift()
         if (!nowPlay) return Discord.sendMessage(this.textChannel, 'There are no more items in the queue, playback has now stopped.')
 
-        this.intent = await Discord.client.voiceConnection.playRawStream(nowPlay.stream)
+        this.intent = await Discord.client.voiceConnection.playRawStream(nowPlay.stream, { volume: this.volume })
         this.nowPlaying = nowPlay
     }
 }
