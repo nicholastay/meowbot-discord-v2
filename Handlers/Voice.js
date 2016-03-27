@@ -8,10 +8,16 @@ ytdl.getInfoAsync = thenify(ytdl.getInfo) // promise wrapper
 
 class Voice {
     constructor() {
+        if (Discord.client.voiceConnection) Discord.client.leaveVoiceChannel()
+
         this.textChannel = null
-        this.nowPlaying = null
-        this.intent = null
+        this._nowPlaying = null
+        this._intent = null
         this.queue = []
+    }
+
+    get intent() {
+        return this._intent
     }
 
     set intent(intent) {
@@ -22,10 +28,16 @@ class Voice {
                 this.playNext()
             })
         }
+        this._intent = intent
+    }
+
+    get nowPlaying() {
+        return this._nowPlaying
     }
 
     set nowPlaying(data) {
-        if (data) Discord.sendMessage(this.textChannel, `**Now Playing**: **[${data.type}] ${data.name}** *(requested by ${data.requester.name})*`)
+        Discord.sendMessage(this.textChannel, `**Now Playing**: **[${data.type}] ${data.name}** *(requested by ${data.requester.name})*`)
+        this._nowPlaying = data
     }
 
     get commands() {
@@ -65,6 +77,21 @@ class Voice {
                                   .catch(e => { return `There was an error joining voice... *${e}*` })
                 }
             },
+            'queue': {
+                description: 'Outputs the current queue. Must be invoked in a bound text<->voice channel.',
+                pm: false,
+                handler: (params, author, channel) => {
+                    if (!this.textChannel || !channel.equals(this.textChannel)) return
+
+                    let formatted = `The current queue is as follows:\n**NP**: [${this.nowPlaying.type}] ${this.nowPlaying.name} *(requested by ${this.nowPlaying.requester.name})*`
+                      , i         = 1
+                    for (let t of this.queue) {
+                        formatted += `**${i}**: [${t.type}] ${t.name} *(requested by ${t.requester.name})*\n`
+                        i++
+                    }
+                    return formatted
+                }
+            },
             'playdirectfile': {
                 description: 'Direct passthrough to .playFile() for admin',
                 permissionLevel: 3,
@@ -81,8 +108,7 @@ class Voice {
                 pm: false,
                 reply: true,
                 handler: async (params, author, channel) => {
-                    if (!channel.equals(this.textChannel)) return
-                    if (!Discord.client.voiceConnection) return 'I am currently not in a voice channel, make me join one first, baka!'
+                    if (!this.textChannel || !channel.equals(this.textChannel)) return
 
                     let lookup = params.join(' ')
 

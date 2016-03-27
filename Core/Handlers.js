@@ -77,8 +77,8 @@ class Handlers {
               , r = scope.commands[command].reply
 
             if (h instanceof Promise) {
-                return h.then(p => Discord[r ? 'reply' : 'sendMessage'](message, p))
-                        .catch(Logging.log)
+                return h.then(p => { if (p) Discord[r ? 'reply' : 'sendMessage'](message, p) })
+                        .catch(e => Logging.log(e.stack))
             }
             if (h instanceof String || typeof h === 'string') {
                 return Discord[r ? 'reply' : 'sendMessage'](message, h)
