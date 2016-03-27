@@ -7,7 +7,7 @@ class Management {
             'clean': {
                 description: 'Cleans the last \'x\' messages that I have said in that channel for the last 100 messages.',
                 permissionLevel: 1,
-                pm: false,
+                blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to make MeowBot clean it\'s own messages.',
                 reply: true,
                 handler: async (params, author, channel) => {

@@ -56,13 +56,13 @@ class Handlers {
         if (scope.commands[command]) {
             if (scope.commands[command]._alias) command = scope.commands[command]._alias // switch context to alias
 
-            if ((scope.commands[command].general && message.private) || (scope.commands[command].pm && !message.private)) return // if in a general server chat and its a pm or other way round dont allow it based on command settings
+            if ((scope.commands[command].blockGeneral && !message.private) || (scope.commands[command].blockPM && message.private)) return // if in a general server chat and its a pm or other way round dont allow it based on command settings
 
             // Basic permissions
             // 0 = general nobody, 1 = server mod, 2 = server admin, 3 = bot admin
             let perms = 0
             if (Config.admins.indexOf(message.author.id) > -1) perms = 3
-            else {
+            else if (!message.private) {
                 let userRoles = message.channel.server.rolesOfUser(message.author)
                 if (userRoles.find(r => r.name === 'MeowAdmins')) perms = 2
                 else if (userRoles.find(r => r.name === 'MeowMods')) perms = 1
@@ -70,8 +70,8 @@ class Handlers {
 
             if (scope.commands[command].permissionLevel) {
                 if (scope.commands[command].permissionLevel > perms) {
-                    if (scope.commands[command.hidden]) return // shutup on a hidden command
-                    return Discord.client.reply(message, (scope.commands[command].noPermissionsResponse || 'You do not have permissions to run that command.'))
+                    if (scope.commands[command].hidden) return // shutup on a hidden command
+                    return Discord.reply(message, (scope.commands[command].noPermissionsResponse || 'You do not have permissions to run that command.'))
                 }
             }
 

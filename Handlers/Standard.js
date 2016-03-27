@@ -17,10 +17,9 @@ class Standard {
             },
             'uptime': {
                 description: 'Returns the uptime of the bot.',
-                reply: true,
-                handler: () => {
+                handler: (params, author) => {
                     let uptime = humanizeDuration(new Date() - Discord.aliveSince, { round: true })
-                    return `MeowBot has been up, online and serving you for: ${uptime}.`
+                    return `${author.mention()}, MeowBot has been up, online and serving you for: ${uptime}.`
                 }
             },
             'help': {
@@ -56,7 +55,7 @@ class Standard {
             'join': {
                 description: 'Bot join server information over PM only.',
                 reply: true,
-                general: false,
+                blockGeneral: true,
                 handler: (params) => {
                     if (Discord.client.user.bot && !Config.discord.oauthId) {
                         Logging.mlog('StandardM', 'A user is trying to make bot join their server! Please set discord.oauthId in your config with your bot\'s OAuth ID!')
@@ -75,7 +74,7 @@ class Standard {
             },
             'serverinfo': {
                 description: 'Returns information about the server the message was issued on.',
-                pm: false,
+                blockPM: true,
                 handler: (params, author, channel) => {
                     return `Here's some info about this server:
 ${'```'}
@@ -90,7 +89,7 @@ ${'```'}`
             },
             'userinfo': {
                 description: 'Returns information about a user on the server it was issued on.',
-                pm: false,
+                blockPM: true,
                 handler: (params, author, channel) => {
                     let user = author // default
                     if (params[0]) {

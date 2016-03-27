@@ -7,7 +7,7 @@ class Commands {
             'createcommand': {
                 description: 'Creates a custom command for a server that gives a custom text response.',
                 permissionLevel: 1,
-                pm: false,
+                blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to create a custom MeowBot command.',
                 reply: true,
                 handler: async (params, author, channel) => {
@@ -24,7 +24,7 @@ class Commands {
             'removecommand': {
                 description: 'Removes a custom command from the server.',
                 permissionLevel: 1,
-                pm: false,
+                blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to remove custom MeowBot commands.',
                 reply: true,
                 handler: async (params, author, channel) => {
