@@ -21,6 +21,7 @@
     "humanize-duration": "^3.7.0",
     "nedb-promise": "^2.0.0",
     "node-opus": "^0.1.12",
+    "nodesu": "^0.3.0",
     "request": "^2.69.0",
     "thenify": "^3.2.0",
     "ytdl-core": "^0.7.13"

@@ -8,7 +8,10 @@ const config = {
         username: 'user',
         password: ''
     },
-    databasePath: './MySpecialDBPath' // optional: directory to store database file(s) in - remove the key to use default './Database' - path can be absolute or relative (to this directory, the root of MeowBot)
+    databasePath: './MySpecialDBPath', // optional: directory to store database file(s) in - remove the key to use default './Database' - path can be absolute or relative (to this directory, the root of MeowBot)
+    osu: {
+        apiKey: ''
+    }
 }
 
 export default config
