@@ -3,6 +3,7 @@ import ytdl from 'ytdl-core'
 import thenify from 'thenify'
 
 import Discord from '../Core/Discord'
+import Logging from '../Core/Logging'
 
 ytdl.getInfoAsync = thenify(ytdl.getInfo) // promise wrapper
 
@@ -24,7 +25,6 @@ class Voice {
     set intent(intent) {
         if (intent instanceof require('discord.js/lib/Voice/StreamIntent')) {
             intent.on('end', () => {
-                this.intent = null
                 this.nowPlaying = null
 
                 if (this.voting) {
@@ -33,6 +33,7 @@ class Voice {
                 }
 
                 this.playNext()
+                this.intent = null
             })
         }
         this._intent = intent
@@ -130,7 +131,7 @@ class Voice {
                     let lookup = params.join(' ')
 
 
-                    // Matching'
+                    // Matching different resources
                     let urlmp3Lookup = /^https?:\/\/(.*)\/(.*?)\.mp3$/i.exec(lookup)
                     if (urlmp3Lookup) {
                         // url
@@ -148,8 +149,14 @@ class Voice {
                         // youtube
                         try {
                             let info = await ytdl.getInfoAsync(`http://youtube.com/watch?v=${youtubeLookup[4]}`)
+                              , stream = ytdl.downloadFromInfo(info, { quality: 140 })
+                                             .on('error', e => {
+                                                 if (e.code === 'ECONNRESET') return Discord.client.sendMessage(this.textChannel, 'Hit a connection error to YouTube while trying to play the track, bot\'s connection to their servers may be unstable. Skipping to next video...')
+                                                 Logging.mlog('VoiceH', `YTDL stream error - ${e}`)
+                                                 // Discord.client.sendMessage(this.textChannel, 'There was a backend error during playback... please try again later.')
+                                             })
                             this.addToQueue({
-                                stream: ytdl.downloadFromInfo(info, { quality: 140 }), // 140 = opus audio
+                                stream, // 140 = opus audio
                                 type: 'YouTube',
                                 name: info.title && info.author ? `${info.title} (by ${info.author})` : `Video ID ${youtubeLookup[4]} [was unable to get metadata]`,
                                 requester: author
@@ -212,14 +219,14 @@ class Voice {
                         }
                         if (members.length === 3) this.voting.votesRequired = 2 // bot + 2 users, 2 users one user vote is unfair, require 2
 
-                        return `${author.name} has voted to skip the current track *(${this.nowPlaying.name})*. Starting a vote with the current members of the voice channel. ${this.voting.votesRequired} votes are required to skip. There is currently 1 vote. Time remaining: 90 second(s)`
+                        return `**${author.name} has voted to skip the current track** *(${this.nowPlaying.name})*. Starting a vote with the current members of the voice channel. ${this.voting.votesRequired} votes are required to skip. There is currently 1 vote. Time remaining: 90 second(s)`
                     } else {
                         // Using a current vote.
                         if (this.voting.members.indexOf(author.id) < 0) {
                             // invalid user from those casted
                             return `${author.mention()}, you were not in the voice channel at the time the voting started. You do not have a right to vote in this round.`
                         }
-                        if (this.voting.voted.indexOf(author.id) < 0) {
+                        if (this.voting.voted.indexOf(author.id) > -1) {
                             return `${author.mention()}, you have already voted to skip for this round!`
                         }
 
@@ -227,11 +234,13 @@ class Voice {
                         this.voting.votes++
 
                         if (this.voting.votes >= this.voting.votesRequired) {
+                            clearTimeout(this.voting.timeout)
+                            this.voting = null
                             Discord.client.voiceConnection.stopPlaying()
-                            return `${author.name} has voted to skip the current track *(${this.nowPlaying.name})*. **VOTING SUCCEEDED, SKIPPING CURRENT TRACK.**`
+                            return `**${author.name} has voted to skip the current track** *(${this.nowPlaying.name})*. **VOTING SUCCEEDED, SKIPPING CURRENT TRACK.**`
                         }
 
-                        return `${author.name} has voted to skip the current track *(${this.nowPlaying.name})*. **Voting progress: ${this.voting.votes}/${this.voting.votesRequired} (${this.voting.votesRequired - this.voting.votes} votes still required).**`
+                        return `**${author.name} has voted to skip the current track** *(${this.nowPlaying.name})*. **Voting progress: ${this.voting.votes}/${this.voting.votesRequired} (${this.voting.votesRequired - this.voting.votes} votes still required).**`
                     }
                 }
             },
