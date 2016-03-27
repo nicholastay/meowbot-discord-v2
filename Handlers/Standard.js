@@ -38,7 +38,19 @@ class Standard {
                         for (let a of Handlers.commands[command].alias) aliases += ` ${a}`
                     }
 
-                    return `${'`'}${command}${'`'}: ${'`'}${Handlers.commands[command].description}${aliases ? ` (aliases:${aliases})` : ''}${'`'}`
+                    let permissions = null
+                    if (Handlers.commands[command].permissionLevel) {
+                        switch(Handlers.commands[command].permissionLevel) {
+                            case 1:
+                                permissions = 'Server Mod'; break
+                            case 2:
+                                permissions = 'Server Admin'; break
+                            case 3:
+                                permissions = 'MeowBot Admin'; break
+                        }
+                    }
+
+                    return `${'`'}${command}${'`'}: ${'`'}${Handlers.commands[command].description}${aliases ? ` (aliases:${aliases})` : ''}${'`'}${permissions ? `*(You must have at least '${permissions}' permission to use this command.)*\n` : ''}`
                 }
             },
             'join': {
