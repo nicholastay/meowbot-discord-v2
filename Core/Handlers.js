@@ -54,6 +54,8 @@ class Handlers {
           , command = params.shift()
 
         if (scope.commands[command]) {
+            if (scope.commands[command]._alias) command = scope.commands[command]._alias // switch context to alias
+
             if ((scope.commands[command].general && message.private) || (scope.commands[command].pm && !message.private)) return // if in a general server chat and its a pm or other way round dont allow it based on command settings
 
             // Basic permissions
@@ -103,6 +105,18 @@ class Handlers {
                     }
                     this.commands[k] = h.commands[k]
                     this.commands[k].fromHandler = handlerName
+                    if (this.commands[k].alias) {
+                        for (let a of this.commands[k].alias) {
+                            if (this.commands[a]) {
+                                Logging.mlog('Handlers', `A command with trigger '${a}' already exists, it has not been overrided with an alias from '${handlerName}'.`)
+                            }
+                            this.commands[a] = {
+                                _alias: k, // internal alias marker '_'
+                                fromHandler: handlerName
+                            }
+                            Logging.mlog('Handlers', `Registering alias '${a}' -> '${k}' [${handlerName}]`)
+                        }
+                    }
                     Logging.mlog('Handlers', `Loaded command '${k}' (from '${handlerName}').`)
                 }
             }

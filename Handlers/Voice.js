@@ -36,7 +36,7 @@ class Voice {
     }
 
     set nowPlaying(data) {
-        Discord.sendMessage(this.textChannel, `**Now Playing**: **[${data.type}] ${data.name}** *(requested by ${data.requester.name})*`)
+        if (data) Discord.sendMessage(this.textChannel, `**Now Playing**: **[${data.type}] ${data.name}** *(requested by ${data.requester.name})*`)
         this._nowPlaying = data
     }
 
@@ -83,13 +83,22 @@ class Voice {
                 handler: (params, author, channel) => {
                     if (!this.textChannel || !channel.equals(this.textChannel)) return
 
-                    let formatted = `The current queue is as follows:\n**NP**: [${this.nowPlaying.type}] ${this.nowPlaying.name} *(requested by ${this.nowPlaying.requester.name})*`
+                    let formatted = `The current queue is as follows:\n**NP**: [${this.nowPlaying.type}] ${this.nowPlaying.name} *(requested by ${this.nowPlaying.requester.name})*\n`
                       , i         = 1
                     for (let t of this.queue) {
                         formatted += `**${i}**: [${t.type}] ${t.name} *(requested by ${t.requester.name})*\n`
                         i++
                     }
                     return formatted
+                }
+            },
+            'nowplaying': {
+                alias: ['np'],
+                description: 'Outputs the current track playing. Must be invoked in a bound text<->voice channel.',
+                pm: false,
+                handler: (params, author, channel) => {
+                    if (!this.textChannel || !channel.equals(this.textChannel)) return
+                    return `**Now Playing**: [${this.nowPlaying.type}] ${this.nowPlaying.name} *(requested by ${this.nowPlaying.requester.name})*`
                 }
             },
             'playdirectfile': {
