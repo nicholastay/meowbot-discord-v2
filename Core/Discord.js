@@ -39,6 +39,7 @@ class Discord {
         let firstLetter
         if (data.private) firstLetter = message[0].toUpperCase() // caps first letter for better appearance in PM replies
         else if (!message.startsWith('I ')) firstLetter = message[0].toLowerCase() // do the opposite (excluding 'I' like 'I want to ...')
+        else firstLetter = message[0]
 
         return this.client.reply(data, firstLetter + message.substr(1, message.length))
     }
