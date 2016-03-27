@@ -12,7 +12,7 @@ class Standard {
                 description: 'Basic info about bot command.',
                 reply: true,
                 handler: () => {
-                    return 'meow meow meow! i\'m nexerq\'s little cat helper! nya!'
+                    return 'MeowBot v2. Another open-source, random Discord bot, made by Nexerq. Source code: https://github.com/nicholastay/meowbot-discord-v2.'
                 }
             },
             'uptime': {
@@ -28,10 +28,17 @@ class Standard {
                 handler: (params) => {
                     if (!params[0]) return
 
-                    let cmd = params[0].replace(Config.prefix, '')
+                    let command = params[0]
+                    if (Handlers.commands[command] && Handlers.commands[command]._alias) command = Handlers.commands[command]._alias // alias redir
+                    if (!Handlers.commands[command] || Handlers.commands[command].hidden) return `There is no such command as '${params[0]}'` // act dumb on a hidden command :P
 
-                    if (!params[0].startsWith(Config.prefix) || !Handlers.commands[cmd] || Handlers.commands[cmd].hidden) return `There is no such command as '${params[0]}'` // act dumb on a hidden command :P
-                    return `${'`'}${params[0]}${'`'}: ${'`'}${Handlers.commands[cmd].description}${'`'}`
+                    let aliases = null
+                    if (Handlers.commands[command].alias) {
+                        aliases = ''
+                        for (let a of Handlers.commands[command].alias) aliases += ` ${a}`
+                    }
+
+                    return `${'`'}${command}${'`'}: ${'`'}${Handlers.commands[command].description}${aliases ? ` (aliases:${aliases})` : ''}${'`'}`
                 }
             },
             'join': {
