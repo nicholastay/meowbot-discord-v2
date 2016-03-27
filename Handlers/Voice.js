@@ -29,6 +29,7 @@ class Voice {
 
                 if (this.voting) {
                     Discord.sendMessage(this.textChannel, `The vote started by ${this.voting.author.name} has been cancelled, as the track has now stopped playing.`)
+                    clearTimeout(this.voting.timeout)
                     this.voting = null
                 }
 
