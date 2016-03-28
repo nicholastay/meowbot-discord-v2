@@ -18,6 +18,7 @@ Repl.register([
     'Discord',
     'Events',
     'Handlers',
+    'Logging',
     'Tools'
 ])
 

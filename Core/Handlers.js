@@ -103,6 +103,7 @@ class Handlers {
                 Logging.mlog('Handlers', `Loaded ${h.handlers.length} message handler(s) from '${handlerName}'.`)
             }
             if (h.commands) {
+                let commands = []
                 for (let k in h.commands) {
                     if (this.commands[k]) {
                         Logging.mlog('Handlers', `A command with trigger '${k}' already exists, it has not been overrided from the one from '${handlerName}'.`)
@@ -110,10 +111,12 @@ class Handlers {
                     }
                     this.commands[k] = h.commands[k]
                     this.commands[k].fromHandler = handlerName
+                    commands.push(k)
                     if (this.commands[k].alias) {
                         for (let a of this.commands[k].alias) {
                             if (this.commands[a]) {
                                 Logging.mlog('Handlers', `A command with trigger '${a}' already exists, it has not been overrided with an alias from '${handlerName}'.`)
+                                continue
                             }
                             this.commands[a] = {
                                 _alias: k, // internal alias marker '_'
@@ -122,8 +125,9 @@ class Handlers {
                             Logging.mlog('Handlers', `Registering alias '${a}' -> '${k}' [${handlerName}]`)
                         }
                     }
-                    Logging.mlog('Handlers', `Loaded command '${k}' (from '${handlerName}').`)
+                    // Logging.mlog('Handlers', `Loaded command '${k}' (from '${handlerName}').`)
                 }
+                Logging.mlog('Handlers', `Loaded ${commands.length} commands from '${handlerName}'. [${commands.join(', ')}]`)
             }
             if (h.intervals) {
                 if (!Array.isArray(h.intervals)) return

@@ -1,21 +1,24 @@
 import nodesu from 'nodesu'
 
 import Config from '../Core/Config'
+import Logging from '../Core/Logging'
 
 class Osu {
     constructor() {
-        if (!Config.osu || !Config.osu.apiKey) return this.api = null
+        if (!Config.osu || !Config.osu.apiKey) return Logging.mlog('OsuH', 'osu! handler has been disabled as it is not configured/configured properly.')
+
         this.api = new nodesu.api({
             apiKey: Config.osu.apiKey
         })
     }
 
     get commands() {
+        if (!this.api) return null
+
         return {
             'osu': {
                 description: 'Get\'s the osu! information of a user.',
                 handler: async (params) => {
-                    if (!this.api) return 'My bot owner hasn\'t set me up properly! Please go tell him to setup me properly for osu!'
                     if (!params[0]) return 'You need to tell me the username of the person you want me to lookup...'
 
                     let osuUser = await this.api.getUser(this.api.user.byUsername(params.join(' ')))

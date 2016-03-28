@@ -6,6 +6,13 @@ let _keys = []
 class Config {
     constructor() {
         this._reload(true)
+
+        this._REPLCommands = {
+            'rc': {
+                help: '[Config] Reloads the config.',
+                action: this._reload.bind(this)
+            }
+        }
     }
 
     _reload(first) {

@@ -11,16 +11,15 @@ class Standard {
         return {
             'meowbot': {
                 description: 'Basic info about bot command.',
-                reply: true,
                 handler: () => {
                     return 'MeowBot v2. Another open-source, random Discord bot, made by Nexerq. Source code: https://github.com/nicholastay/meowbot-discord-v2.'
                 }
             },
             'uptime': {
                 description: 'Returns the uptime of the bot.',
-                handler: (params, author) => {
+                handler: () => {
                     let uptime = humanizeDuration(new Date() - Discord.aliveSince, { round: true })
-                    return `${author.mention()}, MeowBot has been up, online and serving you for: ${uptime}.`
+                    return `MeowBot has been up, online and serving you for: ${uptime}.`
                 }
             },
             'help': {
