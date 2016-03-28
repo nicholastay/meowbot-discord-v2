@@ -88,9 +88,31 @@ class Management {
                     }
 
                     return Promise.all(promises)
-                                  .then(res => {
-                                      return `Removed ${res.filter(x => x.status === 'resolved').length} message(s) from the last 100 that I have sent.`
-                                  })
+                                  .then(res => { return `Removed ${res.filter(x => x.status === 'resolved').length} message(s) from the last 100 that I have sent.` })
+                }
+            },
+            'prune': {
+                description: 'Prunes the last \'x\' message from the channel.',
+                permissionLevel: 1,
+                blockPM: true,
+                noPermissionsResponse: 'You require to be at least a server mod to make MeowBot clean the channel\'s messages.',
+                retry: true,
+                handler: async (params, author, channel) => {
+                    if (!params[0] || !Number(params[0])) return 'You need to give me a number of messages to prune!'
+
+                    let missingPerms = Tools.checkOwnPermissions(channel.server, ['readMessageHistory', 'manageMessages'])
+                    if (missingPerms) return fancyPrintPerms(missingPerms)
+
+                    let toPrune = Number(params[0])
+                    if (toPrune > 100) return 'The maximum I can prune at a time is 100 messages. Please lower the number and try again.'
+
+                    let messages = await Discord.client.getChannelLogs(channel, toPrune + 1) // dont count or prune the prune command hehe
+                      , promises = []
+
+                    messages.shift() // disregard command
+                    for (let m of messages) promises.push(Tools.reflect(Discord.client.deleteMessage(m)))
+                    return Promise.all(promises)
+                                  .then(res => { return `Pruned the last ${res.filter(x => x.status === 'resolved').length} messages(s).` })
                 }
             }
         }
