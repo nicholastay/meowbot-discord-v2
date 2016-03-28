@@ -20,7 +20,7 @@ class Osu {
 
                     let osuUser = await this.api.getUser(this.api.user.byUsername(params.join(' ')))
                     return `Here's some information about that osu! user:
-${'```'}
+\`\`\`
 Username: ${osuUser.username}
 User ID: ${osuUser.user_id}
 Avatar: https://a.ppy.sh/${osuUser.user_id}
@@ -34,7 +34,7 @@ Accuracy: ${Number(osuUser.accuracy).toFixed(2)}%
 Total Hit Counts (300/100/50): ${osuUser.count300}/${osuUser.count100}/${osuUser.count50}
 Total Ranks Achieved (SS/S/A): ${osuUser.count_rank_ss}/${osuUser.count_rank_s}/${osuUser.count_rank_a}
 Profile URL: https://osu.ppy.sh/u/${osuUser.user_id}
-${'```'}`
+\`\`\``
                 }
             }
         }

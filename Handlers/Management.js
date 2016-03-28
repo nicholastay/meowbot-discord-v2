@@ -103,7 +103,7 @@ function fancyPrintPerms(missingPerms) {
         formatted += `${Tools.camelToSpaced(r)}\n`
     }
     return `I am missing the following permissions on this server -
-${'```'}${formatted}${'```'}Please ensure I have a role named 'Meow' and these permissions before using the command again.`
+\`\`\`${formatted}\`\`\`Please ensure I have a role named 'Meow' and these permissions before using the command again.`
 }
 
 export default new Management

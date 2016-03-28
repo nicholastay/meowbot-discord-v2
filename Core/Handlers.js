@@ -80,11 +80,14 @@ class Handlers {
 
             if (h instanceof Promise) {
                 return h.then(p => { if (p) Discord[r ? 'reply' : 'sendMessage'](message, p) })
-                        .catch(e => Logging.log(e.stack))
+                        .catch(e => {
+                            Logging.log(e.stack)
+                            Discord.sendMessage(message, `An error occurred... - \`${e}\``)
+                        })
             }
             if (h instanceof String || typeof h === 'string') {
                 return Discord[r ? 'reply' : 'sendMessage'](message, h)
-                              .catch(Logging.log)
+                              .catch(e => Logging.log(e.stack))
             }
         }
     }

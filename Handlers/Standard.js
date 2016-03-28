@@ -77,14 +77,14 @@ class Standard {
                 blockPM: true,
                 handler: (params, author, channel) => {
                     return `Here's some info about this server:
-${'```'}
+\`\`\`
 Name: ${channel.server.name}
 ID: ${channel.server.id}
 Region: ${channel.server.region}
 Owner: ${channel.server.owner.username} (#${channel.server.owner.discriminator}) <${channel.server.owner.id}>
 Members: Aware of ${channel.server.members.length} members.
 Roles: Aware of ${channel.server.roles.length} roles.
-${'```'}`
+\`\`\``
                 }
             },
             'userinfo': {
@@ -98,14 +98,14 @@ ${'```'}`
                     }
 
                     return `Some information I know about ${user.equals(author) ? 'you' : 'that user'}:
-${'```'}
+\`\`\`
 Name: ${user.username}
 User ID: ${user.id}
 Discriminator: #${user.discriminator}
 Avatar: ${user.avatarURL}
 Bot?: ${user.bot ? 'Yes' : 'No'}
 Status: ${user.status}${user.game ? ` (playing ${user.game.name})` : ''}
-${'```'}`
+\`\`\``
                 }
             }
         }

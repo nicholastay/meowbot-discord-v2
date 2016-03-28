@@ -1,4 +1,3 @@
-import request from 'request'
 import ytdl from 'ytdl-core'
 import thenify from 'thenify'
 
@@ -137,7 +136,7 @@ class Voice {
                     if (urlmp3Lookup) {
                         // url
                         this.addToQueue({
-                            stream: request(lookup),
+                            file: lookup, // pass url direct to ffmpeg
                             type: 'URL-MP3',
                             name: `${urlmp3Lookup[2]}.mp3`,
                             requester: author
@@ -271,7 +270,9 @@ class Voice {
         let nowPlay = this.queue.shift()
         if (!nowPlay) return Discord.sendMessage(this.textChannel, 'There are no more items in the queue, playback has now stopped.')
 
-        this.intent = await Discord.client.voiceConnection.playRawStream(nowPlay.stream, { volume: this.volume })
+        if (nowPlay.file) this.intent = await Discord.client.voiceConnection.playFile(nowPlay.file, { volume: this.volume })
+        else this.intent = await Discord.client.voiceConnection.playRawStream(nowPlay.stream, { volume: this.volume })
+
         this.nowPlaying = nowPlay
     }
 }
