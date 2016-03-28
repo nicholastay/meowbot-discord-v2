@@ -114,11 +114,18 @@ class Voice {
                 description: 'Direct passthrough to .playFile() for admin',
                 permissionLevel: 3,
                 hidden: true,
-                blockPM: true,
-                handler: async (params) => {
+                handler: async (params, author) => {
                     if (!Discord.client.voiceConnection) return
-                    this.intent = await Discord.client.voiceConnection.playFile(params.join(' '), { volume: this.volume })
-                    return `**[ADMIN ACTION]** - Directly playing: ${params.join(' ')}`
+
+                    let file = params.join(' ')
+                      , name = file.split('/').pop()
+                    this.addToQueue({
+                        file,
+                        name,
+                        type: 'LOCAL',
+                        requester: author
+                    })
+                    return `**[ADMIN ACTION]** - Added a local file to queue: ${params.join(' ').split('/').pop()}`
                 }
             },
             'play': {
