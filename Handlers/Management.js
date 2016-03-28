@@ -4,6 +4,64 @@ import Tools from '../Core/Tools'
 class Management {
     get commands() {
         return {
+            'setcolor': {
+                description: 'Sets the color of a role to a hex color. (Usage: setcolor [hex code] [role name])',
+                permissionLevel: 1,
+                blockPM: true,
+                noPermissionsResponse: 'You require to at least be a server mod to set a role\'s hex color.',
+                reply: true,
+                handler: (params, author, channel) => {
+                    if (!params[0] || !params[1]) return 'You must specify a hex color and a role name for me to change the color of!'
+                    if (!/^#?[A-Fa-f0-9]{6}$/.test(params[0])) return 'Invalid hex color specified.'
+
+                    let missingPerms = Tools.checkOwnPermissions(channel.server, ['manageRoles'])
+                    if (missingPerms) return fancyPrintPerms(missingPerms)
+
+                    let color    = parseInt(params.shift().replace('#', ''), 16)
+                      , roleName = params.join(' ')
+                      , role     = channel.server.roles.get('name', roleName)
+                    if (!role) return 'Invalid role specified for this server.'
+
+                    return Discord.client.updateRole(role, { color })
+                                         .then(() => { return 'Updated the role\'s color successfully.' })
+                }
+            },
+            'setusercolor': {
+                description: 'Sets the color of a user to a hex color. Leave the user blank to set own. (Warning: spams roles on the server for each user! as such, only server admins can use this command.)',
+                permissionLevel: 2,
+                blockPM: true,
+                noPermissionsResponse: 'You require to at least be a server admin to set a user\'s hex color. *(This is due to the role spam created)*',
+                reply: true,
+                handler: async (params, author, channel) => {
+                    if (!params[0]) return 'You must specify a hex color and optionally, a user\'s name for me to change the color of!'
+                    if (!/^#?[A-Fa-f0-9]{6}$/.test(params[0])) return 'Invalid hex color specified.'
+
+                    let missingPerms = Tools.checkOwnPermissions(channel.server, ['manageRoles'])
+                    if (missingPerms) return fancyPrintPerms(missingPerms)
+
+                    let color = parseInt(params.shift().replace('#', ''), 16)
+                      , user  = author
+                    if (params[0]) {
+                        user = channel.server.members.get('name', params.join(' '))
+                        if (!user) return 'Invalid user name specified!'
+                    }
+
+                    let existingRole = channel.server.roles.get('name', new RegExp(`\\(MeowColors#${user.id}\\)$`))
+                    if (existingRole) {
+                        // Update it
+                        return Discord.client.updateRole(existingRole, { color })
+                                             .then(() => { return 'Updated the user\'s color successfully.' })
+                    } else {
+                        // Create it
+                        let role = await Discord.client.createRole(channel.server, {
+                            color,
+                            name: `${user.name} (MeowColors#${user.id})`
+                        })
+                        return Discord.client.addMemberToRole(user, role)
+                                             .then(() => { return 'User\'s color successfully set. *(A new role for this user was created and they were added to it.)*' })
+                    }
+                }
+            },
             'clean': {
                 description: 'Cleans the last \'x\' messages that I have said in that channel for the last 100 messages.',
                 permissionLevel: 1,
@@ -13,15 +71,8 @@ class Management {
                 handler: async (params, author, channel) => {
                     if (!params[0] || !Number(params[0])) return 'You need to give me a number of my own messages to clean!'
 
-                    let missingRoles = Tools.checkOwnPermissions(channel.server, ['readMessageHistory'])
-                    if (missingRoles) {
-                        let formattedRoles = ''
-                        for (let r of missingRoles) {
-                            formattedRoles += `${Tools.camelToSpaced(r)}\n`
-                        }
-                        return `I am missing the following permissions on this server -
-${'```'}${formattedRoles}${'```'}Please ensure I have a role named 'Meow' and these permissions before using the command again.`
-                    }
+                    let missingPerms = Tools.checkOwnPermissions(channel.server, ['readMessageHistory'])
+                    if (missingPerms) return fancyPrintPerms(missingPerms)
 
                     let messages = await Discord.client.getChannelLogs(channel, 100)
                       , myMsgs   = messages.filter(m => m.author.equals(Discord.client.user))
@@ -44,6 +95,15 @@ ${'```'}${formattedRoles}${'```'}Please ensure I have a role named 'Meow' and th
             }
         }
     }
+}
+
+function fancyPrintPerms(missingPerms) {
+    let formatted = ''
+    for (let r of missingPerms) {
+        formatted += `${Tools.camelToSpaced(r)}\n`
+    }
+    return `I am missing the following permissions on this server -
+${'```'}${formatted}${'```'}Please ensure I have a role named 'Meow' and these permissions before using the command again.`
 }
 
 export default new Management

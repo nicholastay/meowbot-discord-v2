@@ -1,21 +1,17 @@
 /*eslint-disable no-unused-vars */ // shh eslint we need these vars for eval
 const Discord  = require('../Core/Discord')
-    , Database = require('../Core/Database')
+    , Database = require('../Core/Database').db
     , Handlers = require('../Core/Handlers')
     , Tools    = require('../Core/Tools')
 
 class Admin {
-    constructor() {
-        this.textChannel = null
-    }
-
     get commands() {
         return {
             'exec': {
                 description: 'Executes a raw JavaScript command and returns the output.',
                 hidden: true,
                 permissionLevel: 3,
-                handler: (params) => {
+                handler: (params, author, channel, message) => {
                     let resp
                     try {
                         resp = eval(params.join(' '))
