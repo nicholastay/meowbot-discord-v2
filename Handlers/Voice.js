@@ -15,6 +15,13 @@ class Voice {
         this._intent = null
         this.queue = []
         this.volume = 1
+
+        this.events = {
+            'discord.disconnected': () => {
+                // Disconnection ensure var reset
+                this.textChannel = null
+            }
+        }
     }
 
     get intent() {
@@ -80,6 +87,7 @@ class Voice {
                                   .joinVoiceChannel(voiceChan)
                                   .then(() => {
                                       this.textChannel = channel // Monitor this channel for play commands and stuff
+                                      this.queue = []
                                       this.volume = 1
                                       return `Joined the voice channel '${voiceChan.name}' successfully! All notification updates will be sent to this channel, and any commands you wish to use to play music, etc, should be done in this channel.`
                                   })

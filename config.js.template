@@ -11,6 +11,12 @@ const config = {
     databasePath: './MySpecialDBPath', // optional: directory to store database file(s) in - remove the key to use default './Database' - path can be absolute or relative (to this directory, the root of MeowBot)
     osu: {
         apiKey: ''
+    },
+    status: { // status message updates. remove key to disable module
+        messages: ['Mario Kart Wii', 'Pokemon Red/Blue'], // status messages to rotate (or just do 1 to disable rotation and use one)
+        random: true, // if rotating, randomize order? (default = false)
+        printOnChange: true, // print changes to console (default = false)
+        interval: 5 * 60 * 1000 // if rotating, interval to rotate at (in ms)? (default = 10mins)
     }
 }
 

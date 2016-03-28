@@ -37,6 +37,9 @@ const Tools = {
         let mentions = Discord.client.internal.resolver.resolveMentions(mention)
         if (mentions.length < 1 || mentions[0].length < 1) return null
         return mentions[0][0] // not sure why tbh
+    },
+    getRandomInt: (min, max) => { // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+        return Math.floor(Math.random() * (max - min)) + min
     }
 }
 

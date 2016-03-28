@@ -1,7 +1,7 @@
 import DiscordJS from 'discord.js'
 
 import Config from './Config'
-import Handlers from './Handlers'
+import Events from './Events'
 import Logging from './Logging'
 
 class Discord {
@@ -16,10 +16,12 @@ class Discord {
         this.client.on('ready', () => {
             Logging.mlog('Discord', 'Connected to Discord.')
             this.aliveSince = new Date()
+            Events.emit('discord.ready')
         })
         this.client.on('disconnected', () => {
             this.aliveSince = null
             Logging.mlog('Discord', 'Connection dropped to Discord, will attempt reconnections per 2.5mins...')
+            Events.emit('discord.disconnected')
             let reconnInterval = setInterval(() => {
                 Logging.mlog('Discord', 'Reconnecting to Discord...')
                 this.login()
@@ -28,7 +30,7 @@ class Discord {
                     })
             }, 2.5 * 60 * 1000)
         })
-        this.client.on('message', Handlers.handleMessage)
+        this.client.on('message', (data) => Events.emit('chat.message', data))
 
         this.sendMessage = this.client.sendMessage.bind(this.client) // direct passthru
 

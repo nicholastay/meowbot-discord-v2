@@ -3,16 +3,16 @@ import path from 'path'
 
 import Config from './Config'
 import Discord from './Discord'
+import Events from './Events'
 import Tools from './Tools'
 import Logging from './Logging'
 
-let scope
-
 class Handlers {
     constructor() {
-        scope = this // ffs
         this.handlers = {}
         this.commands = {}
+        this.intervals = {}
+        this.events = {}
 
         this._REPLCommands = {
             'ra': {
@@ -28,6 +28,8 @@ class Handlers {
                 action: (h) => this.load(h)
             }
         }
+
+        Events.on('chat.message', this.handleMessage.bind(this))
     }
 
     handleMessage(message) {
@@ -37,8 +39,8 @@ class Handlers {
 
 
         // Basic low-level message handlers
-        for (let k in scope.handlers) {
-            for (let h of scope.handlers[k]) {
+        for (let k in this.handlers) {
+            for (let h of this.handlers[k]) {
                 if (message.self && !h.allowSelf) continue // since this is a more crude handler, allow such behavior if explicitly set
                 h.handler(message.content, message.author, message.channel, message)
             }
@@ -53,10 +55,10 @@ class Handlers {
         let params  = message.content.replace(prefix, '').split(' ') // strip prefix & leave as array of params
           , command = params.shift()
 
-        if (scope.commands[command]) {
-            if (scope.commands[command]._alias) command = scope.commands[command]._alias // switch context to alias
+        if (this.commands[command]) {
+            if (this.commands[command]._alias) command = this.commands[command]._alias // switch context to alias
 
-            if ((scope.commands[command].blockGeneral && !message.private) || (scope.commands[command].blockPM && message.private)) return // if in a general server chat and its a pm or other way round dont allow it based on command settings
+            if ((this.commands[command].blockGeneral && !message.private) || (this.commands[command].blockPM && message.private)) return // if in a general server chat and its a pm or other way round dont allow it based on command settings
 
             // Basic permissions
             // 0 = general nobody, 1 = server mod, 2 = server admin, 3 = bot admin
@@ -68,15 +70,15 @@ class Handlers {
                 else if (userRoles.find(r => r.name === 'MeowMods')) perms = 1
             }
 
-            if (scope.commands[command].permissionLevel) {
-                if (scope.commands[command].permissionLevel > perms) {
-                    if (scope.commands[command].hidden) return // shutup on a hidden command
-                    return Discord.reply(message, (scope.commands[command].noPermissionsResponse || 'You do not have permissions to run that command.'))
+            if (this.commands[command].permissionLevel) {
+                if (this.commands[command].permissionLevel > perms) {
+                    if (this.commands[command].hidden) return // shutup on a hidden command
+                    return Discord.reply(message, (this.commands[command].noPermissionsResponse || 'You do not have permissions to run that command.'))
                 }
             }
 
-            let h = scope.commands[command].handler(params, message.author, message.channel, message)
-              , r = scope.commands[command].reply
+            let h = this.commands[command].handler(params, message.author, message.channel, message)
+              , r = this.commands[command].reply
 
             if (h instanceof Promise) {
                 return h.then(p => { if (p) Discord[r ? 'reply' : 'sendMessage'](message, p) })
@@ -123,19 +125,42 @@ class Handlers {
                     Logging.mlog('Handlers', `Loaded command '${k}' (from '${handlerName}').`)
                 }
             }
+            if (h.intervals) {
+                if (!Array.isArray(h.intervals)) return
+                this.intervals[handlerName] = h.intervals
+                Logging.mlog('Handlers', `Loaded ${h.intervals.length} interval(s) from '${handlerName}'`)
+            }
+            if (h.events) {
+                this.events[handlerName] = h.events
+                for (let k in this.events[handlerName]) {
+                    Events.on(k, this.events[handlerName][k])
+                }
+                Logging.mlog('Handlers', `Loaded ${Object.keys(this.events[handlerName]).length} event listener(s) from '${handlerName}'`)
+            }
             Logging.mlog('Handlers', `Loaded handler '${handlerName}'.`)
         }
         catch (e) {
-            Logging.mlog('Handlers', `Error loading handler '${handlerName}' - ${e}`)
+            Logging.mlog('Handlers', `Error loading handler '${handlerName}' - \n${e.stack}`)
         }
     }
 
     unload(handlerName) {
         if (Tools.hotUnload(`../Handlers/${handlerName}`)) {
-            delete(this.handlers[handlerName])
+            if (this.handlers[handlerName]) delete(this.handlers[handlerName])
             if (Object.keys(this.commands).length > 0) {
                 for (let k in this.commands) {
                     if (this.commands[k].fromHandler === handlerName) delete this.commands[k]
+                }
+            }
+            if (this.intervals[handlerName]) {
+                for (let i of this.intervals[handlerName]) {
+                    clearInterval(i)
+                }
+                delete(this.intervals[handlerName])
+            }
+            if (this.events[handlerName]) {
+                for (let k in this.events[handlerName]) {
+                    Events.removeListener(k, this.events[handlerName][k])
                 }
             }
             return Logging.mlog('Handlers', `Unloaded handler '${handlerName}'.`)

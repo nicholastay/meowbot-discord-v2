@@ -16,6 +16,7 @@ Repl.register([
     'Config',
     'Database',
     'Discord',
+    'Events',
     'Handlers',
     'Tools'
 ])
