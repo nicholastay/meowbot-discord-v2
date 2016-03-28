@@ -216,7 +216,6 @@ class Voice {
                             author,
                             members: members.map(i => i.id), // lock the members by storing their IDs, any new members will be ignored to this vote
                             voted: [author.id], // only the author voted, obviously
-                            votes: 1,
                             votesRequired: Math.ceil((members.length - 1) / 2) // majority
                         }
                         this.votingTimeout = setTimeout(() => {
@@ -238,16 +237,15 @@ class Voice {
                         }
 
                         this.voting.voted.push(author.id)
-                        this.voting.votes++
 
-                        if (this.voting.votes >= this.voting.votesRequired) {
+                        if (this.voting.voted.length >= this.voting.votesRequired) {
                             clearTimeout(this.votingTimeout)
                             this.voting = null
                             Discord.client.voiceConnection.stopPlaying()
                             return `**${author.name} has voted to skip the current track** *(${this.nowPlaying.name})*. **VOTING SUCCEEDED, SKIPPING CURRENT TRACK.**`
                         }
 
-                        return `**${author.name} has voted to skip the current track** *(${this.nowPlaying.name})*. **Voting progress: ${this.voting.votes}/${this.voting.votesRequired} (${this.voting.votesRequired - this.voting.votes} votes still required).**`
+                        return `**${author.name} has voted to skip the current track** *(${this.nowPlaying.name})*. **Voting progress: ${this.voting.voted.length}/${this.voting.votesRequired} (${this.voting.votesRequired - this.voting.voted.length} votes still required).**`
                     }
                 }
             },
