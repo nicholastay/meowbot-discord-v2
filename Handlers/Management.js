@@ -42,8 +42,8 @@ class Management {
                     let color = parseInt(params.shift().replace('#', ''), 16)
                       , user  = author
                     if (params[0]) {
-                        user = channel.server.members.get('name', params.join(' '))
-                        if (!user) return 'Invalid user name specified!'
+                        user = Tools.resolveMention(params[0])
+                        if (!user) return 'Invalid user specified! You must mention the user in this argument.'
                     }
 
                     let existingRole = channel.server.roles.get('name', new RegExp(`\\(MeowColors#${user.id}\\)$`))

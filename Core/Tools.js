@@ -30,6 +30,13 @@ const Tools = {
         // https://stackoverflow.com/questions/31424561/wait-until-all-es6-promises-complete-even-rejected-promises
         return promise.then((v) => { return { v, status: 'resolved' }},
                             (e) => { return { e, status: 'rejected' }})
+    },
+    resolveMention: (mention) => {
+        // Resolves A SINGLE mention with the internal discord.js resolver IF THE MENTION IS VALID (save some cpu, eh? ...)
+        if (!/^<@\d+>$/.test(mention)) return null
+        let mentions = Discord.client.internal.resolver.resolveMentions(mention)
+        if (mentions.length < 1 || mentions[0].length < 1) return null
+        return mentions[0][0] // not sure why tbh
     }
 }
 

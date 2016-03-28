@@ -3,6 +3,7 @@ import humanizeDuration from 'humanize-duration'
 import Config from '../Core/Config'
 import Discord from '../Core/Discord'
 import Handlers from '../Core/Handlers'
+import Tools from '../Core/Tools'
 import Logging from '../Core/Logging'
 
 class Standard {
@@ -88,13 +89,13 @@ Roles: Aware of ${channel.server.roles.length} roles.
                 }
             },
             'userinfo': {
-                description: 'Returns information about a user on the server it was issued on.',
+                description: 'Returns information about a user on the server it was issued on. Defaults to the person who wrote the message.',
                 blockPM: true,
-                handler: (params, author, channel) => {
+                handler: (params, author) => {
                     let user = author // default
                     if (params[0]) {
-                        user = channel.server.members.get('name', params.join(' '))
-                        if (!user) return `I do not know of a user called ${params.join(' ')} on this server.`
+                        user = Tools.resolveMention(params[0])
+                        if (!user) return 'Invalid user, please mention them properly.'
                     }
 
                     return `Some information I know about ${user.equals(author) ? 'you' : 'that user'}:
