@@ -49,7 +49,7 @@ class Standard {
                         }
                     }
 
-                    return `${'`'}${command}${'`'}: ${'`'}${Handlers.commands[command].description}${aliases ? ` (aliases:${aliases})` : ''}${'`'}${permissions ? `*(You must have at least '${permissions}' permission to use this command.)*\n` : ''}`
+                    return `\`${command}\`: \`${Handlers.commands[command].description}${aliases ? ` (aliases:${aliases})` : ''}\`${permissions ? `*(You must have at least '${permissions}' permission to use this command.)*\n` : ''}`
                 }
             },
             'join': {
