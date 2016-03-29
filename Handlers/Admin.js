@@ -34,15 +34,28 @@ class Admin {
                 description: 'Sets the avatar of the bot using a file on the local system, or a url.',
                 hidden: true,
                 permissionLevel: 3,
-                handler: async (params) => {
+                handler: async (params, author, channel) => {
+                    if (!params[0]) return
                     let resource = params.join(' ')
                       , b64data  = null
+
+                    Discord.sendMessage(channel, 'One sec, grabbing and uploading picture...')
 
                     if (/^https?:\/\//.test(resource)) b64data = (await axios.get(resource, { responseType: 'arraybuffer' })).data // URL
                     else b64data = await readFileAsync(resource) // File
 
                     return Discord.client.setAvatar(b64data)
                                          .then(() => { return 'New avatar sucessfully set.' })
+                }
+            },
+            'setname': {
+                description: 'Changes the name of the bot itself.',
+                hidden: true,
+                permissionLevel: 3,
+                handler: async (params) => {
+                    if (!params[0]) return
+                    return Discord.client.setUsername(params.join(' '))
+                                         .then(() => { return 'New username sucessfully set.' })
                 }
             }
         }
