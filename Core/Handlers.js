@@ -118,6 +118,7 @@ class Handlers {
                     this.commands[k].fromHandler = handlerName
                     commands.push(k)
                     if (this.commands[k].alias) {
+                        let aliases = []
                         for (let a of this.commands[k].alias) {
                             if (this.commands[a]) {
                                 Logging.mlog('Handlers', `A command with trigger '${a}' already exists, it has not been overrided with an alias from '${handlerName}'.`)
@@ -127,8 +128,10 @@ class Handlers {
                                 _alias: k, // internal alias marker '_'
                                 fromHandler: handlerName
                             }
-                            Logging.mlog('Handlers', `Registering alias '${a}' -> '${k}' [${handlerName}]`)
+                            // Logging.mlog('Handlers', `Registering alias '${a}' -> '${k}' [${handlerName}]`)
+                            aliases.push(`${a} -> ${k}`)
                         }
+                        Logging.mlog('Handlers', `Registered ${aliases.length} alias(es) from '${handlerName}'. [${aliases.join(', ')}]`)
                     }
                     // Logging.mlog('Handlers', `Loaded command '${k}' (from '${handlerName}').`)
                 }
@@ -137,19 +140,19 @@ class Handlers {
             if (h.intervals) {
                 if (!Array.isArray(h.intervals)) return
                 this.intervals[handlerName] = h.intervals
-                Logging.mlog('Handlers', `Loaded ${h.intervals.length} interval(s) from '${handlerName}'`)
+                Logging.mlog('Handlers', `Loaded ${h.intervals.length} interval(s) from '${handlerName}'.`)
             }
             if (h.events) {
                 this.events[handlerName] = h.events
                 for (let k in this.events[handlerName]) {
                     Events.on(k, this.events[handlerName][k])
                 }
-                Logging.mlog('Handlers', `Loaded ${Object.keys(this.events[handlerName]).length} event listener(s) from '${handlerName}'`)
+                Logging.mlog('Handlers', `Loaded ${Object.keys(this.events[handlerName]).length} event listener(s) from '${handlerName}'.`)
             }
             Logging.mlog('Handlers', `Loaded handler '${handlerName}'.`)
         }
         catch (e) {
-            Logging.mlog('Handlers', `Error loading handler '${handlerName}' - \n${e.stack}`)
+            Logging.mlog('Handlers', `Error loading handler '${handlerName}'. - \n${e.stack}`)
         }
     }
 

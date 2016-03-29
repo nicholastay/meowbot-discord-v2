@@ -107,13 +107,19 @@ class Management {
                     let toPrune = Number(params[0])
                     if (toPrune > 100) return 'The maximum I can prune at a time is 100 messages. Please lower the number and try again.'
 
-                    let messages = await Discord.client.getChannelLogs(channel, toPrune + 1) // dont count or prune the prune command hehe
+                    let silent = params[1] === 'silent' // silent, remove command & PM user after prune
+                      , messages = await Discord.client.getChannelLogs(channel, toPrune+1) // +1 as including the command invoked
                       , promises = []
 
-                    messages.shift() // disregard command
+                    if (!silent) messages.shift() // disregard command normally
                     for (let m of messages) promises.push(Tools.reflect(Discord.client.deleteMessage(m)))
                     return Promise.all(promises)
-                                  .then(res => { return `Pruned the last ${res.filter(x => x.status === 'resolved').length} messages(s).` })
+                                  .then(res => {
+                                      let reply = `Pruned the last ${res.filter(x => x.status === 'resolved').length} messages(s)`
+                                      if (!silent) return `${reply}.`
+                                      Discord.sendMessage(author, `${reply} silently. [${server.name} :: #${channel.name}]`)
+                                      return null
+                                  })
                 }
             },
             'prefix': {
