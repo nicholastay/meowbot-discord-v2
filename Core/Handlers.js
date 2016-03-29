@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 
 import Config from './Config'
+import { db as Database } from './Database'
 import Discord from './Discord'
 import Events from './Events'
 import Tools from './Tools'
@@ -29,10 +30,10 @@ class Handlers {
             }
         }
 
-        Events.on('chat.message', this.handleMessage.bind(this))
+        Events.on('chat.message', m => this.handleMessage(m).catch(Logging.log))
     }
 
-    handleMessage(message) {
+    async handleMessage(message) {
         // General information
         message.private = message.channel instanceof require('discord.js').PMChannel
         message.self = message.author.id === Discord.client.user.id
@@ -49,7 +50,11 @@ class Handlers {
 
         // Higher level command handlers
         if (message.self) return // no commands allowed to be by self
-        let prefix = (Config.prefix === '$mention$') ? `<@${Discord.user.id}> ` : (Config.prefix || '!')
+
+        // Prefix checking and grabbing from db
+        let serverSettings = (await Database.Servers.findOne({ server: message.channel.server.id })) || {}
+          , rawPrefix      = serverSettings.prefix || Config.prefix || '!'
+          , prefix         = (rawPrefix === '$mention$') ? `<@${Discord.client.user.id}> ` : rawPrefix
         if (!message.content.startsWith(prefix)) return
 
         let params  = message.content.replace(prefix, '').split(' ') // strip prefix & leave as array of params

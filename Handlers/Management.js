@@ -1,4 +1,5 @@
 import Discord from '../Core/Discord'
+import { db as Database } from '../Core/Database'
 import Tools from '../Core/Tools'
 
 class Management {
@@ -113,6 +114,19 @@ class Management {
                     for (let m of messages) promises.push(Tools.reflect(Discord.client.deleteMessage(m)))
                     return Promise.all(promises)
                                   .then(res => { return `Pruned the last ${res.filter(x => x.status === 'resolved').length} messages(s).` })
+                }
+            },
+            'prefix': {
+                description: 'Sets the prefix used for the bot on this server. You can use the the prefix \'$mention$\' to indicate a mention of me.',
+                permissionLevel: 2,
+                blockPM: true,
+                noPermissionsResponse: 'You require to be a server admin to set the prefix used by MeowBot on this server.',
+                retry: true,
+                handler: async (params, author, channel) => {
+                    if (!params[0]) return
+                    let prefix = params.join(' ')
+                    await Database.Servers.update({ server: channel.server.id }, { $set: { prefix } }, { upsert: true })
+                    return `Prefix for this server has been updated to: \`${prefix}\`.`
                 }
             }
         }

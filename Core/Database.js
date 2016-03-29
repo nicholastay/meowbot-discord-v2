@@ -9,7 +9,8 @@ class Database {
         this.store = path.resolve(__dirname, '../', (Config.databasePath || './Database'))
 
         this.db = {
-            Commands: new nedb({ filename: path.join(this.store, 'Commands.db') })
+            Commands: new nedb({ filename: path.join(this.store, 'Commands.db') }), // Commands store
+            Servers: new nedb({ filename: path.join(this.store, 'Servers.db') }) // Server specific settings store
         }
 
         for (let k in this.db) { // set options for every datastore
