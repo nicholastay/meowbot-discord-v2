@@ -97,7 +97,7 @@ Roles: Aware of ${server.roles.length} roles.
                         if (!user) return 'Invalid user, please mention them properly.'
                     }
 
-                    return `Some information I know about ${user.equals(author) ? 'you' : 'that user'}:
+                    return `Some information I know about ${(user.id === author.id) ? 'you' : 'that user'}:
 \`\`\`
 Name: ${user.username}
 User ID: ${user.id}

@@ -76,7 +76,7 @@ class Management {
                     if (missingPerms) return fancyPrintPerms(missingPerms)
 
                     let messages = await Discord.client.getChannelLogs(channel, 100)
-                      , myMsgs   = messages.filter(m => m.author.equals(Discord.client.user))
+                      , myMsgs   = messages.filter(m => m.author.id === Discord.client.user.id)
 
                     if (myMsgs.length < 1) return 'There were no messages by me to clean up in the last 100 messages.'
 
