@@ -11,16 +11,16 @@ class Management {
                 blockPM: true,
                 noPermissionsResponse: 'You require to at least be a server mod to set a role\'s hex color.',
                 reply: true,
-                handler: (params, author, channel) => {
+                handler: (params, author, channel, server) => {
                     if (!params[0] || !params[1]) return 'You must specify a hex color and a role name for me to change the color of!'
                     if (!/^#?[A-Fa-f0-9]{6}$/.test(params[0])) return 'Invalid hex color specified.'
 
-                    let missingPerms = Tools.checkOwnPermissions(channel.server, ['manageRoles'])
+                    let missingPerms = Tools.checkOwnPermissions(server, ['manageRoles'])
                     if (missingPerms) return fancyPrintPerms(missingPerms)
 
                     let color    = parseInt(params.shift().replace('#', ''), 16)
                       , roleName = params.join(' ')
-                      , role     = channel.server.roles.get('name', roleName)
+                      , role     = server.roles.get('name', roleName)
                     if (!role) return 'Invalid role specified for this server.'
 
                     return Discord.client.updateRole(role, { color })
@@ -33,11 +33,11 @@ class Management {
                 blockPM: true,
                 noPermissionsResponse: 'You require to at least be a server admin to set a user\'s hex color. *(This is due to the role spam created)*',
                 reply: true,
-                handler: async (params, author, channel) => {
+                handler: async (params, author, channel, server) => {
                     if (!params[0]) return 'You must specify a hex color and optionally, a user\'s name for me to change the color of!'
                     if (!/^#?[A-Fa-f0-9]{6}$/.test(params[0])) return 'Invalid hex color specified.'
 
-                    let missingPerms = Tools.checkOwnPermissions(channel.server, ['manageRoles'])
+                    let missingPerms = Tools.checkOwnPermissions(server, ['manageRoles'])
                     if (missingPerms) return fancyPrintPerms(missingPerms)
 
                     let color = parseInt(params.shift().replace('#', ''), 16)
@@ -47,14 +47,14 @@ class Management {
                         if (!user) return 'Invalid user specified! You must mention the user in this argument.'
                     }
 
-                    let existingRole = channel.server.roles.get('name', new RegExp(`\\(MeowColors#${user.id}\\)$`))
+                    let existingRole = server.roles.get('name', new RegExp(`\\(MeowColors#${user.id}\\)$`))
                     if (existingRole) {
                         // Update it
                         return Discord.client.updateRole(existingRole, { color })
                                              .then(() => { return 'Updated the user\'s color successfully.' })
                     } else {
                         // Create it
-                        let role = await Discord.client.createRole(channel.server, {
+                        let role = await Discord.client.createRole(server, {
                             color,
                             name: `${user.name} (MeowColors#${user.id})`
                         })
@@ -69,10 +69,10 @@ class Management {
                 blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to make MeowBot clean it\'s own messages.',
                 reply: true,
-                handler: async (params, author, channel) => {
+                handler: async (params, author, channel, server) => {
                     if (!params[0] || !Number(params[0])) return 'You need to give me a number of my own messages to clean!'
 
-                    let missingPerms = Tools.checkOwnPermissions(channel.server, ['readMessageHistory'])
+                    let missingPerms = Tools.checkOwnPermissions(server, ['readMessageHistory'])
                     if (missingPerms) return fancyPrintPerms(missingPerms)
 
                     let messages = await Discord.client.getChannelLogs(channel, 100)
@@ -98,10 +98,10 @@ class Management {
                 blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to make MeowBot clean the channel\'s messages.',
                 retry: true,
-                handler: async (params, author, channel) => {
+                handler: async (params, author, channel, server) => {
                     if (!params[0] || !Number(params[0])) return 'You need to give me a number of messages to prune!'
 
-                    let missingPerms = Tools.checkOwnPermissions(channel.server, ['readMessageHistory', 'manageMessages'])
+                    let missingPerms = Tools.checkOwnPermissions(server, ['readMessageHistory', 'manageMessages'])
                     if (missingPerms) return fancyPrintPerms(missingPerms)
 
                     let toPrune = Number(params[0])
@@ -122,10 +122,10 @@ class Management {
                 blockPM: true,
                 noPermissionsResponse: 'You require to be a server admin to set the prefix used by MeowBot on this server.',
                 retry: true,
-                handler: async (params, author, channel) => {
+                handler: async (params, author, channel, server) => {
                     if (!params[0]) return
                     let prefix = params.join(' ')
-                    await Database.Servers.update({ server: channel.server.id }, { $set: { prefix } }, { upsert: true })
+                    await Database.Servers.update({ server: server.id }, { $set: { prefix } }, { upsert: true })
                     return `Prefix for this server has been updated to: \`${prefix}\`.`
                 }
             }

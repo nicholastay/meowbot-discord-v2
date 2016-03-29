@@ -43,7 +43,7 @@ class Handlers {
         for (let k in this.handlers) {
             for (let h of this.handlers[k]) {
                 if (message.self && !h.allowSelf) continue // since this is a more crude handler, allow such behavior if explicitly set
-                h.handler(message.content, message.author, message.channel, message)
+                h.handler(message.content, message.author, message.channel, message.channel.server, message)
             }
         }
 
@@ -82,7 +82,7 @@ class Handlers {
                 }
             }
 
-            let h = this.commands[command].handler(params, message.author, message.channel, message)
+            let h = this.commands[command].handler(params, message.author, message.channel, message.channel.server, message)
               , r = this.commands[command].reply
 
             if (h instanceof Promise) {

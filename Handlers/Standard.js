@@ -75,15 +75,15 @@ class Standard {
             'serverinfo': {
                 description: 'Returns information about the server the message was issued on.',
                 blockPM: true,
-                handler: (params, author, channel) => {
+                handler: (params, author, channel, server) => {
                     return `Here's some info about this server:
 \`\`\`
-Name: ${channel.server.name}
-ID: ${channel.server.id}
-Region: ${channel.server.region}
-Owner: ${channel.server.owner.username} (#${channel.server.owner.discriminator}) <${channel.server.owner.id}>
-Members: Aware of ${channel.server.members.length} members.
-Roles: Aware of ${channel.server.roles.length} roles.
+Name: ${server.name}
+ID: ${server.id}
+Region: ${server.region}
+Owner: ${server.owner.username} (#${server.owner.discriminator}) <${server.owner.id}>
+Members: Aware of ${server.members.length} members.
+Roles: Aware of ${server.roles.length} roles.
 \`\`\``
                 }
             },

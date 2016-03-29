@@ -9,14 +9,14 @@ class Logger {
             {
                 description: 'Internal logging',
                 allowSelf: true,
-                handler: (message, author, channel, data) => {
+                handler: (message, author, channel, server, data) => {
                     if (data.cleanContent.includes('\n')) data.cleanContent = `${data.cleanContent.split('\n')[0]}... (newline break)`
 
                     if (!data.private) {
-                        return Logging.log(chalk.yellow(`[${channel.server.name} :: #${channel.name}]`), chalk[data.self ? 'magenta' : 'green'](`${author.name}:`), data.cleanContent)
+                        return Logging.log(chalk.yellow(`[${server.name} :: #${channel.name}]`), chalk[data.self ? 'magenta' : 'green'](`${author.name}:`), data.cleanContent)
                     }
 
-                    Logging.log(chalk.yellow('[PrivMsg]'), chalk[data.self ? 'magenta' : 'green'](author.name), '->', chalk[data.self ? 'green' : 'magenta'](`${data.self ? data.channel.recipient.username : Discord.client.user.name}:`), data.cleanContent)
+                    Logging.log(chalk.yellow('[PrivMsg]'), chalk[data.self ? 'magenta' : 'green'](author.name), '->', chalk[data.self ? 'green' : 'magenta'](`${data.self ? channel.recipient.username : Discord.client.user.name}:`), data.cleanContent)
                 }
             }
         ]

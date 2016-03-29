@@ -10,14 +10,14 @@ class Commands {
                 blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to create a custom MeowBot command.',
                 reply: true,
-                handler: async (params, author, channel) => {
+                handler: async (params, author, channel, server) => {
                     let command  = params.shift()
                       , response = params.join(' ')
 
-                    let existing = await Database.Commands.findOne({ command, server: channel.server.id })
+                    let existing = await Database.Commands.findOne({ command, server: server.id })
                     if (existing) return 'This command already exists. If you wish to edit it please remove it then recreate it to confirm such an action.'
 
-                    return Database.Commands.insert({ command, response, server: channel.server.id })
+                    return Database.Commands.insert({ command, response, server: server.id })
                                             .then(() => { return `The command '${command}' was sucessfully added.` })
                 }
             },
@@ -27,10 +27,10 @@ class Commands {
                 blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to remove custom MeowBot commands.',
                 reply: true,
-                handler: async (params, author, channel) => {
+                handler: async (params, author, channel, server) => {
                     let command = params.shift()
 
-                    let removeCommand = await Database.Commands.findOne({ command, server: channel.server.id })
+                    let removeCommand = await Database.Commands.findOne({ command, server: server.id })
                     if (!removeCommand) return 'This command does not exist, I cannot remove a command that doesn\'t exist, baka!'
 
                     return Database.Commands.remove(removeCommand)
@@ -44,10 +44,10 @@ class Commands {
         return [
             {
                 description: 'Command checker and responder',
-                handler: async (message, author, channel) => {
+                handler: async (message, author, channel, server) => {
                     let command = message.split(' ').shift()
 
-                    let dbResp = await Database.Commands.findOne({ command, server: channel.server.id })
+                    let dbResp = await Database.Commands.findOne({ command, server: server.id })
                     if (!dbResp) return
 
                     Discord.sendMessage(channel, dbResp.response)

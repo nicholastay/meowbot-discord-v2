@@ -63,9 +63,9 @@ class Voice {
                 blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to make MeowBot join a voice channel.',
                 reply: true,
-                handler: (params, author, channel, data) => {
+                handler: (params, author, channel, server) => {
                     // leaving mechanism
-                    if (data.channel.equals(this.textChannel)) {
+                    if (channel.equals(this.textChannel)) {
                         return Discord.client
                                       .leaveVoiceChannel()
                                       .then(() => {
@@ -80,7 +80,7 @@ class Voice {
                     if (Discord.client.voiceConnection) return 'I am currently in a voice channel of another channel/server, sorry!'
 
                     let chanName   = params.join(' ')
-                      , voiceChan  = data.channel.server.channels.find(c => c.type === 'voice' && c.name === chanName)
+                      , voiceChan  = server.channels.find(c => c.type === 'voice' && c.name === chanName)
                     if (!voiceChan) return 'Invalid voice channel specified! Ensure you have spelt it correctly.'
 
                     return Discord.client
