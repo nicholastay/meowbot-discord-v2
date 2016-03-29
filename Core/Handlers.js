@@ -72,9 +72,12 @@ class Handlers {
             let perms = 0
             if (Config.admins.indexOf(message.author.id) > -1) perms = 3
             else if (!message.private) {
-                let userRoles = message.channel.server.rolesOfUser(message.author)
-                if (userRoles.find(r => r.name === 'MeowAdmins')) perms = 2
-                else if (userRoles.find(r => r.name === 'MeowMods')) perms = 1
+                if (message.channel.server.ownerID === message.author.id) perms = 2
+                else {
+                    let userRoles = message.channel.server.rolesOfUser(message.author)
+                    if (userRoles.find(r => r.name === 'MeowAdmins')) perms = 2
+                    else if (userRoles.find(r => r.name === 'MeowMods')) perms = 1
+                }
             }
 
             if (this.commands[command].permissionLevel) {

@@ -62,7 +62,7 @@ class Standard {
                         return 'Hi! Unfortunately currently there is no way to get MeowBot to join your own server, please check back another time!~ meow!'
                     }
 
-                    let generalMsg = '\nSome general info: The general roles that MeowBot uses are *MeowMods* and *MeowAdmins*. You should make these two roles add yourself to the *MeowAdmins* role, and any server mods to the other. These roles give certain permissions in the bot to these users to do certain things. For certain commands you may also need to give these roles certain permissions for them to function properly.'
+                    let generalMsg = '\nSome general info: The general roles that MeowBot uses are *MeowMods* and *MeowAdmins*. You should make these two roles and add server admins to the *MeowAdmins* role, and any server mods to the other. The server owner (*probably* you), will always have access any MeowAdmins permissions. These roles give certain permissions in the bot to these users to do certain things. For certain commands you may also need to give these roles certain permissions for them to function properly.'
                     if (!Discord.client.user.bot) {
                         if (!params[1]) return 'You must provide an invite ID/URL for me to join!...'
                         return Discord.client.joinServer(params[1])
