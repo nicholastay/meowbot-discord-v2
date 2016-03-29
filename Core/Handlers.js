@@ -52,8 +52,10 @@ class Handlers {
         if (message.self) return // no commands allowed to be by self
 
         // Prefix checking and grabbing from db
-        let serverSettings = (await Database.Servers.findOne({ server: message.channel.server.id })) || {}
-          , rawPrefix      = serverSettings.prefix || Config.prefix || '!'
+        let serverSettings = {}
+        if (!message.private) serverSettings = (await Database.Servers.findOne({ server: message.channel.server.id })) || {}
+
+        let rawPrefix      = serverSettings.prefix || Config.prefix || '!'
           , prefix         = (rawPrefix === '$mention$') ? `<@${Discord.client.user.id}> ` : rawPrefix
         if (!message.content.startsWith(prefix)) return
 
