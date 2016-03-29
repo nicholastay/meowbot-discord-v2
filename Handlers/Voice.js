@@ -14,7 +14,7 @@ class Voice {
         this._nowPlaying = null
         this._intent = null
         this.queue = []
-        this.volume = 1
+        this.volume = 0.15
 
         this.events = {
             'discord.disconnected': () => {
@@ -88,8 +88,8 @@ class Voice {
                                   .then(() => {
                                       this.textChannel = channel // Monitor this channel for play commands and stuff
                                       this.queue = []
-                                      this.volume = 1
-                                      return `Joined the voice channel '${voiceChan.name}' successfully! All notification updates will be sent to this channel, and any commands you wish to use to play music, etc, should be done in this channel.`
+                                      this.volume = 0.15
+                                      return `Joined the voice channel '${voiceChan.name}' successfully! All notification updates will be sent to this channel, and any commands you wish to use to play music, etc, should be done in this channel. The volume is also set to the default of 15%.`
                                   })
                                   .catch(e => { return `There was an error joining voice... *${e}*` })
                 }
@@ -115,7 +115,26 @@ class Voice {
                 blockPM: true,
                 handler: (params, author, channel) => {
                     if (!this.textChannel || !channel.equals(this.textChannel)) return
-                    return `**Now Playing**: [${this.nowPlaying.type}] ${this.nowPlaying.name} *(requested by ${this.nowPlaying.requester.name})*`
+
+                    let progress = null // progress bar for yt videos
+                    if (this.nowPlaying.type === 'YouTube' && this.nowPlaying.length) {
+                        let nowSeconds = Math.floor(Discord.client.voiceConnection.streamTime / 1000) // to secs
+                          , vidLength  = this.nowPlaying.length
+                          , vidMins    = String(vidLength % 60)
+                          , nowMins    = String(nowSeconds % 60)
+                        if (vidMins.length === 1) vidMins = `0${vidMins}`
+                        if (nowMins.length === 1) nowMins = `0${nowMins}`
+
+                        progress = `\n**`
+                        // bar - calculate filled in chunks vs not
+                        let filled = Math.floor(nowSeconds / vidLength * 20) // out of twenty chunks
+                        for (let i = 1; i < filled; i++) progress += '-' // one less as special circle
+                        progress += '○**'
+                        for (let i = 0; i < (20 - filled); i++) progress += '-'
+                        progress += ` \`${Math.floor(nowSeconds / 60)}:${nowMins}/${Math.floor(vidLength / 60)}:${vidMins}\``
+                    }
+
+                    return `**Now Playing**: [${this.nowPlaying.type}] ${this.nowPlaying.name} *(requested by ${this.nowPlaying.requester.name})*${progress || ''}`
                 }
             },
             'playdirectfile': {
@@ -174,6 +193,7 @@ class Voice {
                                 stream, // 140 = opus audio
                                 type: 'YouTube',
                                 name: info.title && info.author ? `${info.title} (by ${info.author})` : `Video ID ${youtubeLookup[4]} [was unable to get metadata]`,
+                                length: info.length_seconds,
                                 requester: author
                             })
                             return `Added YouTube video **'${info.title}'** to the queue.`
