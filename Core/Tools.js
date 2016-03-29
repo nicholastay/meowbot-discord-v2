@@ -33,10 +33,22 @@ const Tools = {
     },
     resolveMention: (mention) => {
         // Resolves A SINGLE mention with the internal discord.js resolver IF THE MENTION IS VALID (save some cpu, eh? ...)
-        if (!/^<@\d+>$/.test(mention)) return null
-        let mentions = Discord.client.internal.resolver.resolveMentions(mention)
-        if (mentions.length < 1 || mentions[0].length < 1) return null
-        return mentions[0][0] // not sure why tbh
+        if (/^<@\d+>$/.test(mention)) {
+            // User mention
+            let mentions = Discord.client.internal.resolver.resolveMentions(mention)
+            if (mentions.length < 1 || mentions[0].length < 1) return null
+            return mentions[0][0] // not sure why tbh
+        }
+
+        let channelLookup = /^<#(\d+)>$/.exec(mention)
+        if (channelLookup) {
+            // Channel mention
+            let channel = Discord.client.channels.find(c => c.id === channelLookup[1])
+            if (!channel) return null
+            return channel
+        }
+
+        return null
     },
     getRandomInt: (min, max) => { // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
         return Math.floor(Math.random() * (max - min)) + min

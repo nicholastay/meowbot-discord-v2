@@ -39,10 +39,27 @@ class Handlers {
         message.self = message.author.id === Discord.client.user.id
 
 
+        // Prefix checking and grabbing from db
+        let serverSettings = {}
+        if (!message.private) serverSettings = (await Database.Servers.findOne({ server: message.channel.server.id })) || {}
+
+        let rawPrefix      = serverSettings.prefix || Config.prefix || '!'
+          , prefix         = (rawPrefix === '$mention$') ? `<@${Discord.client.user.id}> ` : rawPrefix
+
+        // Check for channel ignores
+        let ignoredChannels = serverSettings.ignoreChannels || []
+          , ignored         = false
+        if (ignoredChannels.indexOf(message.channel.id) > -1) {
+            ignored = true // still wanna run some handlers, quiet shh
+            message.meowIgnored = true
+        }
+
+
         // Basic low-level message handlers
         for (let k in this.handlers) {
             for (let h of this.handlers[k]) {
                 if (message.self && !h.allowSelf) continue // since this is a more crude handler, allow such behavior if explicitly set
+                if (ignored && !h.allowIgnored) continue
                 h.handler(message.content, message.author, message.channel, message.channel.server, message)
             }
         }
@@ -50,13 +67,6 @@ class Handlers {
 
         // Higher level command handlers
         if (message.self) return // no commands allowed to be by self
-
-        // Prefix checking and grabbing from db
-        let serverSettings = {}
-        if (!message.private) serverSettings = (await Database.Servers.findOne({ server: message.channel.server.id })) || {}
-
-        let rawPrefix      = serverSettings.prefix || Config.prefix || '!'
-          , prefix         = (rawPrefix === '$mention$') ? `<@${Discord.client.user.id}> ` : rawPrefix
         if (!message.content.startsWith(prefix)) return
 
         let params  = message.content.replace(prefix, '').split(' ') // strip prefix & leave as array of params
@@ -64,6 +74,7 @@ class Handlers {
 
         if (this.commands[command]) {
             if (this.commands[command]._alias) command = this.commands[command]._alias // switch context to alias
+            if (ignored && !this.commands[command].allowIgnored) return // nope dont run ignored here
 
             if ((this.commands[command].blockGeneral && !message.private) || (this.commands[command].blockPM && message.private)) return // if in a general server chat and its a pm or other way round dont allow it based on command settings
 

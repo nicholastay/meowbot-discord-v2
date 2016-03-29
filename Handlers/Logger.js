@@ -9,8 +9,9 @@ class Logger {
             {
                 description: 'Internal logging',
                 allowSelf: true,
+                allowIgnored: true,
                 handler: (message, author, channel, server, data) => {
-                    let msg = data.cleanContent
+                    let msg = `${data.meowIgnored ? chalk.grey('[i] ') : ''}${data.cleanContent}`
                     if (data.cleanContent.includes('\n')) msg = `${data.cleanContent.split('\n')[0]}... (newline break)`
                     if (data.attachments && data.attachments.length > 0) msg += chalk.grey(` [${data.attachments.length} attachment(s) - ${data.attachments.map(a => a.filename).join(', ')}]`)
 

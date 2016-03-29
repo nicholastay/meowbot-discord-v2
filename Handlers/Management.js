@@ -97,7 +97,7 @@ class Management {
                 permissionLevel: 1,
                 blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to make MeowBot clean the channel\'s messages.',
-                retry: true,
+                reply: true,
                 handler: async (params, author, channel, server) => {
                     if (!params[0] || !Number(params[0])) return 'You need to give me a number of messages to prune!'
 
@@ -127,12 +127,51 @@ class Management {
                 permissionLevel: 2,
                 blockPM: true,
                 noPermissionsResponse: 'You require to be a server admin to set the prefix used by MeowBot on this server.',
-                retry: true,
+                reply: true,
                 handler: async (params, author, channel, server) => {
                     if (!params[0]) return
                     let prefix = params.join(' ')
                     await Database.Servers.update({ server: server.id }, { $set: { prefix } }, { upsert: true })
                     return `Prefix for this server has been updated to: \`${prefix}\`.`
+                }
+            },
+            'ignore': {
+                description: 'Makes the bot ignore commands in a text channel in a server. Ignores all but the \'unignore\' command to unignore the channel. Leave the parameter blank to ignore the current channel.',
+                permissionLevel: 1,
+                blockPM: true,
+                noPermissionsResponse: 'You require to at least be a server mod to ignore a text channel.',
+                reply: true,
+                handler: async (params, author, channel, server) => {
+                    let ignoreChannel = channel
+                    if (params[0]) ignoreChannel = Tools.resolveMention(params.join(' '))
+                    if (!ignoreChannel) return 'Invalid channel to be ignored. Please ensure you are mentioning the channel in question.'
+
+                    let alreadyIgnored = ((await Database.Servers.findOne({ server: server.id })) || {}).ignoreChannels || []
+                    if (alreadyIgnored.indexOf(ignoreChannel.id) > -1) return 'The channel is already being ignored by MeowBot.'
+
+                    await Database.Servers.update({ server: server.id }, { $push: { ignoreChannels: ignoreChannel.id } }, { upsert: true })
+                    return 'The channel is now being ignored. *(you can still use the `unignore` command here to unignore it.)*'
+                }
+            },
+            'unignore': {
+                description: 'Unignores a channel that is being ignored. Leave the parameter blank to unignore the current channel.',
+                permissionLevel: 1,
+                blockPM: true,
+                noPermissionsResponse: 'You require to at least be a server mod to unignore a text channel.',
+                reply: true,
+                allowIgnored: true,
+                handler: async (params, author, channel, server) => {
+                    let ignoreChannel = channel
+                    if (params[0]) ignoreChannel = Tools.resolveMention(params.join(' '))
+                    if (!ignoreChannel) return 'Invalid channel to be unignored. Please ensure you are mentioning the channel in question.'
+
+                    let ignored = ((await Database.Servers.findOne({ server: server.id })) || {}).ignoreChannels || []
+                      , index   = ignored.indexOf(ignoreChannel.id)
+                    if (index < 0) return 'The channel is currently not being ignored by MeowBot.'
+
+                    ignored.splice(index, 1)
+                    await Database.Servers.update({ server: server.id }, { ignoreChannels: ignored }, { upsert: true })
+                    return 'The channel is now being monitored again by MeowBot.'
                 }
             }
         }
