@@ -1,5 +1,5 @@
 import Discord from '../Core/Discord'
-import { db as Database } from '../Core/Database'
+import Database from '../Core/Database'
 import Tools from '../Core/Tools'
 
 class Management {

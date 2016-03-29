@@ -6,7 +6,7 @@ const readFileAsync = thenify(fs.readFile) // readFile promise wrapper
 
 /*eslint-disable no-unused-vars */ // shh eslint we need these vars for eval
 const Discord  = require('../Core/Discord')
-    , Database = require('../Core/Database').db
+    , Database = require('../Core/Database')
     , Handlers = require('../Core/Handlers')
     , Tools    = require('../Core/Tools')
 

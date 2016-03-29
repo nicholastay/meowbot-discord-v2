@@ -1,4 +1,4 @@
-import { db as Database } from '../Core/Database'
+import Database from '../Core/Database'
 import Discord from '../Core/Discord'
 
 class Commands {

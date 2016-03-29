@@ -8,7 +8,7 @@ import Handlers from './Core/Handlers'
 import Repl from './Core/Repl'
 
 Discord.connect()
-Database.load()
+Database._load()
 Handlers.loadAll()
 
 Repl.start()

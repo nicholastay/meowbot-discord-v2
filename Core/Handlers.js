@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 
 import Config from './Config'
-import { db as Database } from './Database'
+import Database from './Database'
 import Discord from './Discord'
 import Events from './Events'
 import Tools from './Tools'
