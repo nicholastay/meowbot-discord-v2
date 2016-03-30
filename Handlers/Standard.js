@@ -25,7 +25,13 @@ class Standard {
             'help': {
                 description: 'Shows the help description for a command.',
                 handler: (params) => {
-                    if (!params[0]) return
+                    if (!params[0]) {
+                        let commands = []
+                        for (let k in Handlers.commands) {
+                            if (!Handlers.commands[k].hidden && !Handlers.commands[k]._alias) commands.push(`\`${k}\``)
+                        }
+                        return `Commands I have: ${commands.join(', ')}\n*(use \`help [command]\` to get help for an individual command.)*`
+                    }
 
                     let command = params[0]
                     if (Handlers.commands[command] && Handlers.commands[command]._alias) command = Handlers.commands[command]._alias // alias redir
@@ -49,7 +55,7 @@ class Standard {
                         }
                     }
 
-                    return `\`${command}\`: \`${Handlers.commands[command].description}${aliases ? ` (aliases:${aliases})` : ''}\`${permissions ? `*(You must have at least '${permissions}' permission to use this command.)*\n` : ''}`
+                    return `\`${command}\`: \`${Handlers.commands[command].description}${aliases ? ` (aliases:${aliases})` : ''}\`${permissions ? `*(You must have at least '${permissions}' permission to use this command.)*\n` : ''}${Handlers.commands[command].blockPM ? '*[You cannot use this command in a private message.]*' : ''}${Handlers.commands[command].blockGeneral ? '*[You can only use this command in a private message.]*' : ''}`
                 }
             },
             'join': {

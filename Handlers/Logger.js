@@ -63,8 +63,11 @@ class Logger {
         }
 
         if (data.meowDeleted) {
-            return Database.Messages.update(storeData, { $set: { deleted: true } })
-                                    .catch((e) => Logging.mlog('LoggerH+DB', `warn: message deleted but existing message wasnt found in db, no field updated - ${e}`))
+            if (Config.logging.logChangesOnly) {
+                storeData.deleted = true
+                return Database.Messages.insert(storeData).catch(Logging.log)
+            }
+            else return Database.Messages.update(storeData, { $set: { deleted: true } }).catch((e) => Logging.mlog('LoggerH+DB', `warn: message deleted but existing message wasnt found in db, no field updated - ${e}`))
         }
 
         if (data.meowEdited) {

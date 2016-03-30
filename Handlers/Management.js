@@ -73,7 +73,7 @@ class Management {
                     if (!params[0] || !Number(params[0])) return 'You need to give me a number of my own messages to clean!'
 
                     let missingPerms = Tools.checkOwnPermissions(server, ['readMessageHistory'])
-                    if (missingPerms) return fancyPrintPerms(missingPerms)
+                    // if (missingPerms) return fancyPrintPerms(missingPerms)
 
                     let messages = await Discord.client.getChannelLogs(channel, 100)
                       , myMsgs   = messages.filter(m => m.author.id === Discord.client.user.id)
@@ -89,7 +89,7 @@ class Management {
                     }
 
                     return Promise.all(promises)
-                                  .then(res => { return `Removed ${res.filter(x => x.status === 'resolved').length} message(s) from the last 100 that I have sent.` })
+                                  .then(res => { return `Removed ${res.filter(x => x.status === 'resolved').length} message(s) from the last 100 that I have sent.${missingPerms ? ' *(This command works better if I have the \`Read Message History\` permission in a role called \'Meow\'.)*' : ''}` })
                 }
             },
             'prune': {
