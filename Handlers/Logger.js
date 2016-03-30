@@ -65,9 +65,9 @@ class Logger {
                                     .catch((e) => Logging.mlog('LoggerH+DB', `warn: message deleted but existing message wasnt found in db, no field updated - ${e}`))
         }
 
-        if (data.meowUpdated) {
-            storeData.updated = true
-            storeData.previous = data.meowUpdated.cleanContent
+        if (data.meowEdited) {
+            storeData.edited = true
+            storeData.previous = data.meowEdited.cleanContent
         }
         if (data.ignored) storeData.ignored = true
 
