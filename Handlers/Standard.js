@@ -110,7 +110,7 @@ User ID: ${user.id}
 Discriminator: #${user.discriminator}
 Avatar: ${user.avatarURL}
 Bot?: ${user.bot ? 'Yes' : 'No'}
-Status: ${user.status}${user.game ? ` (playing ${user.game.name})` : ''}
+Status: ${user.status}${user.game ? ` (playing ${user.game.name || user.game})` : ''}
 \`\`\``
                 }
             }
