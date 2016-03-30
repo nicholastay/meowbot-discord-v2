@@ -30,7 +30,10 @@ class Discord {
                     })
             }, 2.5 * 60 * 1000)
         })
+        this.client.on('error', Logging.log)
         this.client.on('message', (data) => Events.emit('chat.message', data))
+        this.client.on('messageUpdated', (old, changed) => Events.emit('chat.edited', old, changed))
+        this.client.on('messageDeleted', (message, channel) => Events.emit('chat.deleted', message, channel))
 
         this.sendMessage = this.client.sendMessage.bind(this.client) // direct passthru
 
