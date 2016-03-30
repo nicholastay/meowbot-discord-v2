@@ -15,10 +15,25 @@ class Commands {
                       , response = params.join(' ')
 
                     let existing = await Database.Commands.findOne({ command, server: server.id })
-                    if (existing) return 'This command already exists. If you wish to edit it please remove it then recreate it to confirm such an action.'
+                    if (existing) return 'This command already exists. If you wish to edit it please use the \'editcommand\' command.'
 
                     return Database.Commands.insert({ command, response, server: server.id })
                                             .then(() => { return `The command '${command}' was sucessfully added.` })
+                }
+            },
+            'editcommand': {
+                description: 'Edits an existing command in a server.',
+                permissionLevel: 1,
+                blockPM: true,
+                noPermissionsResponse: 'You require to be at least a server mod to edit a custom MeowBot command.',
+                reply: true,
+                handler: async (params, author, channel, server) => {
+                    let command  = params.shift()
+
+                    let existing = await Database.Commands.findOne({ command, server: server.id })
+
+                    return Database.Commands.update(existing, { $set: { response: params.join(' ') } })
+                                            .then(() => { return `The command '${command}' was sucessfully edited.` })
                 }
             },
             'removecommand': {
