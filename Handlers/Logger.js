@@ -9,6 +9,7 @@ class Logger {
     get events() {
         return {
             'chat.edited': (prev, updated) => {
+                if (prev.content === updated.content) return // sometimes it glitches like this so check
                 updated.meowEdited = prev
                 this.log(updated.content, updated.author, updated.channel, updated.channel.server, updated)
             },

@@ -89,7 +89,10 @@ class Management {
                     }
 
                     return Promise.all(promises)
-                                  .then(res => { return `Removed ${res.filter(x => x.status === 'resolved').length} message(s) from the last 100 that I have sent.${missingPerms ? ' *(This command works better if I have the \`Read Message History\` permission in a role called \'Meow\'.)*' : ''}` })
+                                  .then(res => {
+                                      if (params[1] === 'silent') return null
+                                      return `Removed ${res.filter(x => x.status === 'resolved').length} message(s) from the last 100 that I have sent.${missingPerms ? ' *(This command works better if I have the \`Read Message History\` permission in a role called \'Meow\'.)*' : ''}`
+                                  })
                 }
             },
             'prune': {
