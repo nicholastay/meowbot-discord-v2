@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 
+import Config from '../Core/Config'
 import Database from '../Core/Database'
 import Discord from '../Core/Discord'
 import Logging from '../Core/Logging'
@@ -38,6 +39,7 @@ class Logger {
 
     logToDatabase(message, author, channel, server, data) {
         if (author.id === Discord.client.user.id) return // do not log own msgs to db
+        if (Config.logging.logChangesOnly && !(data.meowDeleted || data.meowEdited)) return
 
         let storeData = {
             id: data.id,
