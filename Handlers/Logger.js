@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 
+import Database from '../Core/Database'
 import Discord from '../Core/Discord'
 import Logging from '../Core/Logging'
 
@@ -8,13 +9,13 @@ class Logger {
         return {
             'chat.edited': (prev, updated) => {
                 updated.meowEdited = prev
-                this.logToConsole(updated.content, updated.author, updated.channel, updated.channel.server, updated)
+                this.log(updated.content, updated.author, updated.channel, updated.channel.server, updated)
             },
             'chat.deleted': (message, channel) => {
                 if (!message) return Logging.log(chalk.yellow(`[${channel.server.name} :: #${channel.name}]`), chalk.red('[x]'), chalk.grey('Unidentified message was deleted...'))
                 if (message.meowEdited) delete(message.meowEdited)
                 message.meowDeleted = true
-                this.logToConsole(message.content, message.author, message.channel, message.channel.server, message)
+                this.log(message.content, message.author, message.channel, message.channel.server, message)
             }
         }
     }
@@ -25,9 +26,53 @@ class Logger {
                 description: 'Internal logging',
                 allowSelf: true,
                 allowIgnored: true,
-                handler: this.logToConsole.bind(this)
+                handler: this.log.bind(this)
             }
         ]
+    }
+
+    log(...data) {
+        this.logToConsole(...data)
+        if (Database.Messages) this.logToDatabase(...data) // if the db is loaded go for it
+    }
+
+    logToDatabase(message, author, channel, server, data) {
+        if (author.id === Discord.client.user.id) return // do not log own msgs to db
+
+        let storeData = {
+            id: data.id,
+            message: data.cleanContent,
+            author: {
+                id: author.id,
+                name: author.name
+            }
+        }
+
+        if (data.private) storeData.private = true
+        else {
+            storeData.channel = {
+                id: channel.id,
+                name: channel.name
+            }
+            storeData.server = {
+                id: server.id,
+                name: server.name
+            }
+        }
+
+        if (data.meowDeleted) {
+            return Database.Messages.update(storeData, { $set: { deleted: true } })
+                                    .catch((e) => Logging.mlog('LoggerH+DB', `warn: message deleted but existing message wasnt found in db, no field updated - ${e}`))
+        }
+
+        if (data.meowUpdated) {
+            storeData.updated = true
+            storeData.previous = data.meowUpdated.cleanContent
+        }
+        if (data.ignored) storeData.ignored = true
+
+        return Database.Messages.insert(storeData)
+                                .catch(Logging.log)
     }
 
     logToConsole(message, author, channel, server, data) {

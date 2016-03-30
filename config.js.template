@@ -17,6 +17,10 @@ const config = {
         random: true, // if rotating, randomize order? (default = false)
         printOnChange: true, // print changes to console (default = false)
         interval: 5 * 60 * 1000 // if rotating, interval to rotate at (in ms)? (default = 10mins)
+    },
+    logging: {
+        toDatabase: true, // to nedb
+        databaseTTL: 5 * 24 * 60 * 60 // defaults to 7 days - this is 5 days (in secs) - it is recommended NOT to change this after first run, unless you know how to delete existing indexes and allow this new one to create
     }
 }
 
