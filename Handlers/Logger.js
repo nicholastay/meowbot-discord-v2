@@ -39,7 +39,9 @@ class Logger {
     }
 
     logToDatabase(message, author, channel, server, data) {
-        if (author.id === Discord.client.user.id) return // do not log own msgs to db
+        if (author.id === Discord.client.user.id && !Config.logging.logSelf) return // do not log own msgs to db if config is false (default)
+        if (Config.logging.doNotLogChannels && Config.logging.doNotLogChannels.indexOf(channel.id) > -1) return // channel ignored
+        if (Config.logging.doNotLogUsers && Config.logging.doNotLogUsers.indexOf(author.id) > -1) return // user ignored
         if (Config.logging.logChangesOnly && !(data.meowDeleted || data.meowEdited)) return
 
         let storeData = {

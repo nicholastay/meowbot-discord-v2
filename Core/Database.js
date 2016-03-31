@@ -31,6 +31,7 @@ class Database {
                 timestampData: k.timestamp ? true : false
             })
             this[k.name].nedb.persistence.setAutocompactionInterval(45 * 60 * 1000) // compact the db every 45mins
+            this[k.name].nedb.on('compaction.done', () => Logging.mlog('Database', `Routinely compaction for ${k.name} done.`))
             if (k.indexes) {
                 for (let m of k.indexes) {
                     this[k.name].ensureIndex(m).catch(Logging.log)
