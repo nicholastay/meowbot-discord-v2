@@ -95,7 +95,7 @@ class Logger {
 
         if (data.attachments && data.attachments.length > 0) msg += chalk.grey(` [${data.attachments.length} attachment(s) - ${data.attachments.map(a => a.filename).join(', ')}]`)
 
-        if (!data.private) {
+        if (!data.private && server) {
             return Logging.log(chalk.yellow(`[${server.name} :: #${channel.name}]`), chalk[data.self ? 'magenta' : 'green'](`${author.name}:`), msg)
         }
 
