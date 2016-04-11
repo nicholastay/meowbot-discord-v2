@@ -97,15 +97,24 @@ class Voice {
                 reply: true,
                 handler: (params, author, channel, server) => {
                     // leaving mechanism
-                    if (this.connections[channel.id]) {
+                    if (!params[0] && this.connections[server.id]) {
                         return Discord.client
-                                      .leaveVoiceChannel(this.connections[channel.id].connection)
+                                      .leaveVoiceChannel(this.connections[server.id].connection)
                                       .then(() => {
-                                          delete(this.connections[channel.id])
+                                          delete(this.connections[server.id])
                                           return 'Left the voice channel.'
                                       })
                                       .catch(e => { return `There was an error leaving voice... *${e}*` })
                     }
+
+                    if (this.connections[server.id] && this.connections[server.id].textChannel.id === channel.id) {
+                        return `This text channel is already connected to and bound to the voice channel '${this.connections[server.id].connection.voiceChannel.name}'!`
+                    }
+
+                    if (this.connections[server.id]) {
+                        return `There is already an active voice connection for this server. There can only be one voice connection per server. For you information, I am currently in '${this.connections[server.id].connection.voiceChannel.name}' (bound to text channel ${this.connections[server.id].textChannel.mention()}).`
+                    }
+
 
                     if (!params[0]) return 'You need to specify a voice channel for me to join!'
                     //if (Discord.client.voiceConnection) return 'I am currently in a voice channel of another channel/server, sorry!'
@@ -117,7 +126,7 @@ class Voice {
                     return Discord.client
                                   .joinVoiceChannel(voiceChan)
                                   .then(connection => {
-                                      this.connections[channel.id] = new VoiceConnection(connection, channel)
+                                      this.connections[server.id] = new VoiceConnection(connection, channel)
                                       return `Joined the voice channel '${voiceChan.name}' successfully! All notification updates will be sent to this channel, and any commands you wish to use to play music, etc, should be done in this channel. The volume is also set to the default of 15%.`
                                   })
                                   .catch(e => { return `There was an error joining voice... *${e}*` })
@@ -126,11 +135,11 @@ class Voice {
             'queue': {
                 description: 'Outputs the current queue. Must be invoked in a bound text<->voice channel.',
                 blockPM: true,
-                handler: (params, author, channel) => {
-                    if (!this.connections[channel.id]) return
+                handler: (params, author, channel, server) => {
+                    if (!this.connections[server.id]) return
 
-                    let nowPlaying = this.connections[channel.id].nowPlaying
-                      , queue      = this.connections[channel.id].queue
+                    let nowPlaying = this.connections[server.id].nowPlaying
+                      , queue      = this.connections[server.id].queue
                       , formatted  = `The current queue is as follows:\n**NP**: [${nowPlaying.type}] ${nowPlaying.name} *(requested by ${nowPlaying.requester.name})*\n`
                       , i          = 1
                     for (let t of queue) {
@@ -144,11 +153,11 @@ class Voice {
                 alias: ['np'],
                 description: 'Outputs the current track playing. Must be invoked in a bound text<->voice channel.',
                 blockPM: true,
-                handler: (params, author, channel) => {
-                    if (!this.connections[channel.id]) return
+                handler: (params, author, channel, server) => {
+                    if (!this.connections[server.id]) return
 
                     let progress   = null // progress bar for yt videos
-                      , connection = this.connections[channel.id]
+                      , connection = this.connections[server.id]
                     if (this.nowPlaying.type === 'YouTube' && connection.nowPlaying.length) {
                         let nowSeconds = Math.floor(connection.connection.streamTime / 1000) // to secs
                           , vidLength  = connection.nowPlaying.length
@@ -173,12 +182,12 @@ class Voice {
                 description: 'Direct passthrough to .playFile() for admin',
                 permissionLevel: 3,
                 hidden: true,
-                handler: async (params, author, channel) => {
-                    if (!this.connections[channel.id]) return
+                handler: async (params, author, channel, server) => {
+                    if (!this.connections[server.id]) return
 
                     let file = params.join(' ')
                       , name = file.split('/').pop()
-                    this.connections[channel.id].addToQueue({
+                    this.connections[server.id].addToQueue({
                         file,
                         name,
                         type: 'LOCAL',
@@ -191,11 +200,11 @@ class Voice {
                 description: 'Queue a song for me to play in a voice channel. Text channel must be bound to a voice channel to work.',
                 blockPM: true,
                 reply: true,
-                handler: async (params, author, channel) => {
-                    if (!this.connections[channel.id] || !params[0]) return
+                handler: async (params, author, channel, server) => {
+                    if (!this.connections[server.id] || !params[0]) return
 
                     let lookup = params.join(' ')
-                      , conn   = this.connections[channel.id]
+                      , conn   = this.connections[server.id]
 
 
                     // Matching different resources
@@ -244,24 +253,24 @@ class Voice {
                 description: 'Sets the volume that MeowBot should play at (percentage based). When joining a voice channel, this defaults to 100%. Command must be used in a text<->voice bound channel.',
                 permissionLevel: 1,
                 blockPM: true,
-                handler: (params, author, channel) => {
-                    if (!this.connections[channel.id] || !params[0]) return
+                handler: (params, author, channel, server) => {
+                    if (!this.connections[server.id] || !params[0]) return
 
                     let volume = Number(params[0].replace(/%$/, ''))
                     if (!volume) return 'Invalid volume to set, must be in the form of \'77[%]\'.'
 
-                    this.connections[channel.id].volume = volume / 100
-                    this.connections[channel.id].connection.setVolume(volume / 100)
+                    this.connections[server.id].volume = volume / 100
+                    this.connections[server.id].connection.setVolume(volume / 100)
                     return `Volume has been set to: ${volume}%`
                 }
             },
             'skip': {
                 description: 'Vote/start a vote to skip the currently playing track. Must be used in a text<->voice bound channel.',
                 blockPM: true,
-                handler: (params, author, channel) => {
-                    if (!this.connections[channel.id] || !params[0]) return
+                handler: (params, author, channel, server) => {
+                    if (!this.connections[server.id] || !params[0]) return
 
-                    let conn = this.connections[channel.id]
+                    let conn = this.connections[server.id]
                     if (!conn.voting) {
                         // Starting a new vote.
                         let members = conn.connection.voiceChannel.members // voice channel members
@@ -316,9 +325,9 @@ class Voice {
                 permissionLevel: 1,
                 blockPM: true,
                 retry: true,
-                handler: () => {
-                    if (!this.connections[channel.id]) return
-                    this.connections[channel.id].connection.stopPlaying()
+                handler: (params, author, channel, server) => {
+                    if (!this.connections[server.id]) return
+                    this.connections[server.id].connection.stopPlaying()
                     return '**[MOD ACTION]** Forcefully skipped the currently playing track.'
                 }
             }
