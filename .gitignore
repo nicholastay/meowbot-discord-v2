@@ -2,5 +2,5 @@ node_modules
 npm-debug.log*
 
 /config.js
-*.db
+*.db*
 Handlers/Local.js

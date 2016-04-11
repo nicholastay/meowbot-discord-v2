@@ -52,7 +52,24 @@ const Tools = {
     },
     getRandomInt: (min, max) => { // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
         return Math.floor(Math.random() * (max - min)) + min
+    },
+    isBlankDBRow: (row) => { // Detect a blank row, only these two columns should be filled
+        if ('server' in row && '_id' in row) return true
+        return false
     }
 }
+
+
+Tools._REPLCommands = {
+    'rt': {
+        help: '[Tools] Unloads self, on next load will be reloaded.',
+        action: () => {
+            Tools.hotUnload(require('path').join(__dirname, 'Tools'))
+            require('./Repl').register('Tools')
+            require('./Logging').mlog('Tools', 'Reloaded tools.')
+        }
+    }
+}
+
 
 export default Tools

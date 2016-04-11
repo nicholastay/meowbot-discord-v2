@@ -1,4 +1,5 @@
 import Discord from '../Core/Discord'
+import Config from '../Core/Config'
 import Database from '../Core/Database'
 import Tools from '../Core/Tools'
 
@@ -132,8 +133,21 @@ class Management {
                 noPermissionsResponse: 'You require to be a server admin to set the prefix used by MeowBot on this server.',
                 reply: true,
                 handler: async (params, author, channel, server) => {
-                    if (!params[0]) return
                     let prefix = params.join(' ')
+                    if (!prefix || prefix === Config.prefix) {
+                        let serverd = (await Database.Servers.findOne({ server: server.id }) || {})
+                        if (!serverd.prefix) {
+                            return 'This server does not currently have a custom prefix. You need to specify one to change to!'
+                        }
+                        delete(serverd.prefix)
+                        if (Tools.isBlankDBRow(serverd)) {
+                            await Database.Servers.remove({ server: server.id })
+                        } else {
+                            await Database.Servers.update({ server: server.id }, { $unset: { prefix: true } }, { upsert: true })
+                        }
+                        return `Prefix for this server has been reset to the default: \`${prefix}\`.`
+                    }
+
                     await Database.Servers.update({ server: server.id }, { $set: { prefix } }, { upsert: true })
                     return `Prefix for this server has been updated to: \`${prefix}\`.`
                 }
@@ -168,12 +182,18 @@ class Management {
                     if (params[0]) ignoreChannel = Tools.resolveMention(params.join(' '))
                     if (!ignoreChannel) return 'Invalid channel to be unignored. Please ensure you are mentioning the channel in question.'
 
-                    let ignored = ((await Database.Servers.findOne({ server: server.id })) || {}).ignoreChannels || []
+                    let serverd = (await Database.Servers.findOne({ server: server.id }) || {})
+                      , ignored = serverd.ignoreChannels || []
                       , index   = ignored.indexOf(ignoreChannel.id)
                     if (index < 0) return 'The channel is currently not being ignored by MeowBot.'
 
-                    ignored.splice(index, 1)
-                    await Database.Servers.update({ server: server.id }, { ignoreChannels: ignored }, { upsert: true })
+                    serverd.ignoreChannels.splice(index, 1)
+                    if (Tools.isBlankDBRow(serverd)) {
+                        await Database.Servers.remove({ server: server.id })
+                    } else {
+                        await Database.Servers.update({ server: server.id }, { ignoreChannels: ignored }, { upsert: true })
+                    }
+
                     return 'The channel is now being monitored again by MeowBot.'
                 }
             }
