@@ -82,7 +82,7 @@ class Voice {
         this.events = {
             'discord.disconnected': () => {
                 // Disconnection ensure var reset
-                this.textChannel = null
+                this.connections = {}
             }
         }
     }
