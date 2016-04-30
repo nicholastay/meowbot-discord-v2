@@ -158,7 +158,7 @@ class Voice {
 
                     let progress   = null // progress bar for yt videos
                       , connection = this.connections[server.id]
-                    if (this.nowPlaying.type === 'YouTube' && connection.nowPlaying.length) {
+                    if (connection.nowPlaying.type === 'YouTube' && connection.nowPlaying.length) {
                         let nowSeconds = Math.floor(connection.connection.streamTime / 1000) // to secs
                           , vidLength  = connection.nowPlaying.length
                           , vidMins    = String(vidLength % 60)
@@ -268,7 +268,7 @@ class Voice {
                 description: 'Vote/start a vote to skip the currently playing track. Must be used in a text<->voice bound channel.',
                 blockPM: true,
                 handler: (params, author, channel, server) => {
-                    if (!this.connections[server.id] || !params[0]) return
+                    if (!this.connections[server.id]) return
 
                     let conn = this.connections[server.id]
                     if (!conn.voting) {
