@@ -22,13 +22,15 @@ class Discord {
             this.aliveSince = null
             Logging.mlog('Discord', 'Connection dropped to Discord, will attempt reconnections per 2.5mins...')
             Events.emit('discord.disconnected')
-            let reconnInterval = setInterval(() => {
+            let reconnect = () => {
                 Logging.mlog('Discord', 'Reconnecting to Discord...')
                 this.login()
                     .then(token => {
                         if (token) clearInterval(reconnInterval) // Logged in, clear interval
                     })
-            }, 2.5 * 60 * 1000)
+            }
+            let reconnInterval = setInterval(() => reconnect(), 2.5 * 60 * 1000)
+            reconnect() // first try
         })
         this.client.on('error', Logging.log)
         this.client.on('message', (data) => Events.emit('chat.message', data))
