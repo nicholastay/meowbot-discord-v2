@@ -96,21 +96,27 @@ Roles: Aware of ${server.roles.length} roles.
             'userinfo': {
                 description: 'Returns information about a user on the server it was issued on. Defaults to the person who wrote the message.',
                 blockPM: true,
-                handler: (params, author) => {
+                handler: (params, author, channel, server) => {
                     let user = author // default
                     if (params[0]) {
                         user = Tools.resolveMention(params[0])
                         if (!user) return 'Invalid user, please mention them properly.'
                     }
 
-                    return `Some information I know about ${(user.id === author.id) ? 'you' : 'that user'}:
+                    let userServerData = server.detailsOf(user)
+
+                    return `Some information I know about ${(user.id === author.id) ? 'you' : `'${user.name}'`}:
 \`\`\`
-Name: ${user.username}
+Name: ${user.username}${user.bot ? ' <BOT>' : ''}
 User ID: ${user.id}
 Discriminator: #${user.discriminator}
 Avatar: ${user.avatarURL}
-Bot?: ${user.bot ? 'Yes' : 'No'}
 Status: ${user.status}${user.game ? ` (playing ${user.game.name || user.game})` : ''}
+
+Server specific info <${server.name}>:
+    Nickname: ${userServerData.nick || '<none>'}
+    Roles: <everyone>${userServerData.roles.length > 0 ? `, ${userServerData.roles.map(r => r.name).join(', ')}` : ''}
+    Joined server: ${String(new Date(userServerData.joinedAt))}
 \`\`\``
                 }
             }
