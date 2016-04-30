@@ -18,9 +18,9 @@ class Osu {
         return {
             'osu': {
                 description: 'Get\'s the osu! information of a user.',
+                requireParams: true,
+                requireParamsResponse: 'You need to tell me the username of the person you want me to lookup...',
                 handler: async (params) => {
-                    if (!params[0]) return 'You need to tell me the username of the person you want me to lookup...'
-
                     let osuUser = await this.api.getUser(this.api.user.byUsername(params.join(' ')))
                     return `Here's some information about that osu! user:
 \`\`\`

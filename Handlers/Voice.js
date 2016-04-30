@@ -182,6 +182,7 @@ class Voice {
                 description: 'Direct passthrough to .playFile() for admin',
                 permissionLevel: 3,
                 hidden: true,
+                requireParams: true,
                 handler: async (params, author, channel, server) => {
                     if (!this.connections[server.id]) return
 
@@ -200,8 +201,9 @@ class Voice {
                 description: 'Queue a song for me to play in a voice channel. Text channel must be bound to a voice channel to work.',
                 blockPM: true,
                 reply: true,
+                requireParams: true,
                 handler: async (params, author, channel, server) => {
-                    if (!this.connections[server.id] || !params[0]) return
+                    if (!this.connections[server.id]) return
 
                     let lookup = params.join(' ')
                       , conn   = this.connections[server.id]
@@ -253,8 +255,9 @@ class Voice {
                 description: 'Sets the volume that MeowBot should play at (percentage based). When joining a voice channel, this defaults to 100%. Command must be used in a text<->voice bound channel.',
                 permissionLevel: 1,
                 blockPM: true,
+                requireParams: true,
                 handler: (params, author, channel, server) => {
-                    if (!this.connections[server.id] || !params[0]) return
+                    if (!this.connections[server.id]) return
 
                     let volume = Number(params[0].replace(/%$/, ''))
                     if (!volume) return 'Invalid volume to set, must be in the form of \'77[%]\'.'

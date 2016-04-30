@@ -10,9 +10,12 @@ class Commands {
                 blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to create a custom MeowBot command.',
                 reply: true,
+                requireParams: true,
                 handler: async (params, author, channel, server) => {
                     let command  = params.shift()
                       , response = params.join(' ')
+
+                    if (!response) return 'You need to provide a response for this command!'
 
                     let existing = await Database.Commands.findOne({ command, server: server.id })
                     if (existing) return 'This command already exists. If you wish to edit it please use the \'editcommand\' command.'
@@ -27,6 +30,7 @@ class Commands {
                 blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to edit a custom MeowBot command.',
                 reply: true,
+                requireParams: true,
                 handler: async (params, author, channel, server) => {
                     let command  = params.shift()
 
@@ -42,6 +46,7 @@ class Commands {
                 blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to remove custom MeowBot commands.',
                 reply: true,
+                requireParams: true,
                 handler: async (params, author, channel, server) => {
                     let command = params.shift()
 

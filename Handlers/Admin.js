@@ -17,6 +17,8 @@ class Admin {
                 description: 'Executes a raw JavaScript command and returns the output.',
                 hidden: true,
                 permissionLevel: 3,
+                requireParams: true,
+                requireParamsResponse: null,
                 handler: (params, author, channel, message) => {
                     let resp
                     try {
@@ -34,8 +36,8 @@ class Admin {
                 description: 'Sets the avatar of the bot using a file on the local system, or a url.',
                 hidden: true,
                 permissionLevel: 3,
+                requireParams: true,
                 handler: async (params, author, channel) => {
-                    if (!params[0]) return
                     let resource = params.join(' ')
                       , b64data  = null
 
@@ -52,8 +54,8 @@ class Admin {
                 description: 'Changes the name of the bot itself.',
                 hidden: true,
                 permissionLevel: 3,
+                requireParams: true,
                 handler: async (params) => {
-                    if (!params[0]) return
                     return Discord.client.setUsername(params.join(' '))
                                          .then(() => { return 'New username sucessfully set.' })
                 }

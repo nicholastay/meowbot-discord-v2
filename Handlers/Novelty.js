@@ -33,8 +33,8 @@ class Novelty {
                 description: 'Calculates the love between you and another person.',
                 reply: true,
                 blockPM: true,
+                requireParams: true,
                 handler: (params, author) => {
-                    if (!params[0]) return
                     let to   = params.join(' ')
                       , love = Math.floor(seedrandom(`${author.name} <3 ${to}`)() * 100)
                     return `The love between you and ${to} is ${love}%! <3`
@@ -44,8 +44,8 @@ class Novelty {
                 description: 'Gives a 8-ball magic reading.',
                 reply: true,
                 blockPM: true,
-                handler: (params) => {
-                    if (!params[0]) return
+                requireParams: true,
+                handler: () => {
                     let readingIndex = Tools.getRandomInt(0, BALL_RESPONSES.length)
                     return `I peer into my magic 8-ball and it says: ${BALL_RESPONSES[readingIndex]}.`
                 }

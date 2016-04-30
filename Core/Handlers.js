@@ -76,6 +76,16 @@ class Handlers {
             if (this.commands[command]._alias) command = this.commands[command]._alias // switch context to alias
             if (ignored && !this.commands[command].allowIgnored) return // nope dont run ignored here
 
+            if (this.commands[command].requireParams) { // command requires some params
+                let count = Number(this.commands[command].requireParams) // number of params required
+                if (!count) count = 1 // default like if set to 'true' means just 1 param required
+
+                if (params.length < count) {
+                    if (this.commands[command].requireParamsResponse === null) return // null = shutup
+                    return Discord.reply(message, (this.commands[command].requireParamsResponse || `This command requires an input${count > 1 ? ` of at least ${count} parameters` : ''}!`))
+                }
+            }
+
             if ((this.commands[command].blockGeneral && !message.private) || (this.commands[command].blockPM && message.private)) return // if in a general server chat and its a pm or other way round dont allow it based on command settings
 
             // Basic permissions

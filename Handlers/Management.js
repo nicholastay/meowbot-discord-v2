@@ -12,8 +12,9 @@ class Management {
                 blockPM: true,
                 noPermissionsResponse: 'You require to at least be a server mod to set a role\'s hex color.',
                 reply: true,
+                requireParams: 2,
+                requireParamsResponse: 'You must specify a hex color and a role name for me to change the color of!',
                 handler: (params, author, channel, server) => {
-                    if (!params[0] || !params[1]) return 'You must specify a hex color and a role name for me to change the color of!'
                     if (!/^#?[A-Fa-f0-9]{6}$/.test(params[0])) return 'Invalid hex color specified.'
 
                     let missingPerms = Tools.checkOwnPermissions(server, ['manageRoles'])
@@ -34,8 +35,9 @@ class Management {
                 blockPM: true,
                 noPermissionsResponse: 'You require to at least be a server admin to set a user\'s hex color. *(This is due to the role spam created)*',
                 reply: true,
+                requireParams: true,
+                requireParamsResponse: 'You must specify a hex color and optionally, a user\'s name for me to change the color of!',
                 handler: async (params, author, channel, server) => {
-                    if (!params[0]) return 'You must specify a hex color and optionally, a user\'s name for me to change the color of!'
                     if (!/^#?[A-Fa-f0-9]{6}$/.test(params[0])) return 'Invalid hex color specified.'
 
                     let missingPerms = Tools.checkOwnPermissions(server, ['manageRoles'])
@@ -70,8 +72,10 @@ class Management {
                 blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to make MeowBot clean it\'s own messages.',
                 reply: true,
+                requireParams: true,
                 handler: async (params, author, channel, server) => {
-                    if (!params[0] || !Number(params[0])) return 'You need to give me a number of my own messages to clean!'
+                    let cleanCount = Number(params[0])
+                    if (!cleanCount) return 'You need to give me a number of my own messages to clean!'
 
                     let missingPerms = Tools.checkOwnPermissions(server, ['readMessageHistory'])
                     // if (missingPerms) return fancyPrintPerms(missingPerms)
@@ -86,7 +90,7 @@ class Management {
                     for (let m of myMsgs) {
                         promises.push(Tools.reflect(Discord.client.deleteMessage(m)))
                         i++
-                        if (i >= Number(params[0])) break
+                        if (i >= cleanCount) break
                     }
 
                     return Promise.all(promises)
@@ -102,17 +106,18 @@ class Management {
                 blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to make MeowBot clean the channel\'s messages.',
                 reply: true,
+                requireParams: true,
                 handler: async (params, author, channel, server) => {
-                    if (!params[0] || !Number(params[0])) return 'You need to give me a number of messages to prune!'
+                    let pruneCount = Number(params[0])
+                    if (!pruneCount) return 'You need to give me a number of messages to prune!'
 
                     let missingPerms = Tools.checkOwnPermissions(server, ['readMessageHistory', 'manageMessages'])
                     if (missingPerms) return fancyPrintPerms(missingPerms)
 
-                    let toPrune = Number(params[0])
-                    if (toPrune > 100) return 'The maximum I can prune at a time is 100 messages. Please lower the number and try again.'
+                    if (pruneCount > 100) return 'The maximum I can prune at a time is 100 messages. Please lower the number and try again.'
 
                     let silent = params[1] === 'silent' // silent, remove command & PM user after prune
-                      , messages = await Discord.client.getChannelLogs(channel, toPrune+1) // +1 as including the command invoked
+                      , messages = await Discord.client.getChannelLogs(channel, pruneCount+1) // +1 as including the command invoked
                       , promises = []
 
                     if (!silent) messages.shift() // disregard command normally
@@ -132,6 +137,7 @@ class Management {
                 blockPM: true,
                 noPermissionsResponse: 'You require to be a server admin to set the prefix used by MeowBot on this server.',
                 reply: true,
+                requireParams: true,
                 handler: async (params, author, channel, server) => {
                     let prefix = params.join(' ')
                     if (!prefix || prefix === Config.prefix) {
