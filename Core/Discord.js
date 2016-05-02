@@ -52,7 +52,9 @@ class Discord {
     }
 
     login() {
-        if (!Config.discord) throw new Error('No Discord login info set in Config, please verify and restart bot.')
+        if (!Config.discord.token && process.env.DISCORD_TOKEN) {
+            Config.discord.token = process.env.DISCORD_TOKEN
+        }
         if (Config.discord.token) {
             Logging.mlog('Discord', 'Logging in to Discord... (token auth)')
             return this.client.loginWithToken(Config.discord.token)
@@ -61,7 +63,7 @@ class Discord {
             Logging.mlog('Discord', 'Logging in to Discord...')
             return this.client.login(Config.discord.email, Config.discord.password)
         }
-        throw new Error('Invalid email/password/token setup in config, please verify and restart bot.')
+        throw new Error('Invalid email/password/token setup in config/env variable, please verify and restart bot.')
     }
 }
 
