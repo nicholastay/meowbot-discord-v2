@@ -8,7 +8,7 @@ class Commands {
                 description: 'Lists all the server commands available for the current server.',
                 blockPM: true,
                 handler: async (params, author, channel, server) => {
-                    let commands = await Database.Commands.find({ command, server: server.id })
+                    let commands = await Database.Commands.find({ server: server.id })
 
                     if (commands.length < 0)
                         return 'There are no commands available on this server...'
