@@ -146,9 +146,7 @@ class Management {
                             return 'This server does not currently have a custom prefix. You need to specify one to change to!'
                         }
                         delete(serverd.prefix)
-                        if (Tools.isBlankDBRow(serverd)) {
-                            await Database.Servers.remove({ server: server.id })
-                        } else {
+                        if (!(await Tools.deleteIfBlankDBRow(serverd))) {
                             await Database.Servers.update({ server: server.id }, { $unset: { prefix: true } }, { upsert: true })
                         }
                         return `Prefix for this server has been reset to the default: \`${prefix}\`.`
@@ -194,9 +192,7 @@ class Management {
                     if (index < 0) return 'The channel is currently not being ignored by MeowBot.'
 
                     serverd.ignoreChannels.splice(index, 1)
-                    if (Tools.isBlankDBRow(serverd)) {
-                        await Database.Servers.remove({ server: server.id })
-                    } else {
+                    if (!(await Tools.deleteIfBlankDBRow(serverd))) {
                         await Database.Servers.update({ server: server.id }, { ignoreChannels: ignored }, { upsert: true })
                     }
 

@@ -5,6 +5,8 @@ import DiscordStreamIntent from 'discord.js/lib/Voice/StreamIntent'
 
 import Discord from '../Core/Discord'
 import Logging from '../Core/Logging'
+import Database from '../Core/Database'
+import Tools from '../Core/Tools'
 
 ytdl.getInfoAsync = thenify(ytdl.getInfo) // promise wrapper
 
@@ -95,7 +97,7 @@ class Voice {
                 blockPM: true,
                 noPermissionsResponse: 'You require to be at least a server mod to make MeowBot join a voice channel.',
                 reply: true,
-                handler: (params, author, channel, server) => {
+                handler: async (params, author, channel, server) => {
                     // leaving mechanism
                     if (!params[0] && this.connections[server.id]) {
                         return Discord.client
@@ -113,6 +115,12 @@ class Voice {
 
                     if (this.connections[server.id]) {
                         return `There is already an active voice connection for this server. There can only be one voice connection per server. For you information, I am currently in '${this.connections[server.id].connection.voiceChannel.name}' (bound to text channel ${this.connections[server.id].textChannel.mention()}).`
+                    }
+
+
+                    let allowedVoice = ((await Database.Servers.findOne({ server: server.id })) || {}).allowVoice
+                    if (!allowedVoice) {
+                        return 'This server does not have the voice functionality enabled. This is due to the high bandwidth and resource usage used when streaming audio. You can ask Nexerq (or any other bot admins) to request for access to this feature.'
                     }
 
 
@@ -327,11 +335,31 @@ class Voice {
                 description: 'Forcefully skips the currently playing track.',
                 permissionLevel: 1,
                 blockPM: true,
-                retry: true,
                 handler: (params, author, channel, server) => {
                     if (!this.connections[server.id]) return
                     this.connections[server.id].connection.stopPlaying()
                     return '**[MOD ACTION]** Forcefully skipped the currently playing track.'
+                }
+            },
+            'toggleservervoice': {
+                description: 'Toggles to allow/disallow the server to use the voice functionality.',
+                permissionLevel: 3,
+                blockPM: true,
+                reply: true,
+                handler: async (params, author, channel, server) => {
+                    let serverSettings = (await Database.Servers.findOne({ server: server.id })) || {}
+
+                    if (serverSettings.allowVoice) {
+                        // Disable
+                        delete(serverSettings.allowVoice)
+                        await Database.Servers.update({ server: server.id }, { $unset: { allowVoice: true } }, { upsert: true })
+                        await Tools.deleteIfBlankDBRow(serverSettings)
+                        return 'Voice functionality was disabled for this server.'
+                    }
+
+                    // Enable
+                    return Database.Servers.update({ server: server.id }, { $set: { allowVoice: true } }, { upsert: true })
+                                           .then(() => { return 'Voice functionality was enabled for this server.' })
                 }
             }
         }
