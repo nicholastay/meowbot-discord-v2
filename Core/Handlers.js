@@ -88,20 +88,22 @@ class Handlers {
 
             if ((this.commands[command].blockGeneral && !message.private) || (this.commands[command].blockPM && message.private)) return // if in a general server chat and its a pm or other way round dont allow it based on command settings
 
-            // Basic permissions
-            // 0 = general nobody, 1 = server mod, 2 = server admin, 3 = bot admin
-            let perms = 0
-            if (Config.admins.indexOf(message.author.id) > -1) perms = 3
-            else if (!message.private) {
-                if (message.channel.server.ownerID === message.author.id) perms = 2
-                else {
-                    let userRoles = message.channel.server.rolesOfUser(message.author)
-                    if (userRoles.find(r => r.name === 'MeowAdmins')) perms = 2
-                    else if (userRoles.find(r => r.name === 'MeowMods')) perms = 1
-                }
-            }
-
             if (this.commands[command].permissionLevel) {
+                // Basic permissions
+                // 0 = general nobody, 1 = server mod, 2 = server admin, 3 = bot admin
+                let perms = 0
+                if (Config.admins.indexOf(message.author.id) > -1)
+                    perms = 3
+                else if (!message.private) {
+                    if (message.channel.server.ownerID === message.author.id)
+                        perms = 2
+                    else {
+                        let userRoles = message.channel.server.rolesOfUser(message.author)
+                        if (userRoles.find(r => r.name === 'MeowAdmins')) perms = 2
+                        else if (userRoles.find(r => r.name === 'MeowMods')) perms = 1
+                    }
+                }
+
                 if (this.commands[command].permissionLevel > perms) {
                     if (this.commands[command].hidden) return // shutup on a hidden command
                     return Discord.reply(message, (this.commands[command].noPermissionsResponse || 'You do not have permissions to run that command.'))
