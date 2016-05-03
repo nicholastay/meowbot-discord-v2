@@ -46,7 +46,7 @@ class Management {
                     let color = parseInt(params.shift().replace('#', ''), 16)
                       , user  = author
                     if (params[0]) {
-                        user = Tools.resolveMention(params[0])
+                        user = Tools.resolveMention(params[0], channel)
                         if (!user) return 'Invalid user specified! You must mention the user in this argument.'
                     }
 
@@ -164,7 +164,7 @@ class Management {
                 reply: true,
                 handler: async (params, author, channel, server) => {
                     let ignoreChannel = channel
-                    if (params[0]) ignoreChannel = Tools.resolveMention(params.join(' '))
+                    if (params[0]) ignoreChannel = Tools.resolveMention(params.join(' '), channel)
                     if (!ignoreChannel) return 'Invalid channel to be ignored. Please ensure you are mentioning the channel in question.'
 
                     let alreadyIgnored = ((await Database.Servers.findOne({ server: server.id })) || {}).ignoreChannels || []
@@ -183,7 +183,7 @@ class Management {
                 allowIgnored: true,
                 handler: async (params, author, channel, server) => {
                     let ignoreChannel = channel
-                    if (params[0]) ignoreChannel = Tools.resolveMention(params.join(' '))
+                    if (params[0]) ignoreChannel = Tools.resolveMention(params.join(' '), channel)
                     if (!ignoreChannel) return 'Invalid channel to be unignored. Please ensure you are mentioning the channel in question.'
 
                     let serverd = (await Database.Servers.findOne({ server: server.id }) || {})

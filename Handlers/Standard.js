@@ -99,7 +99,7 @@ Roles: Aware of ${server.roles.length} roles.
                 handler: (params, author, channel, server) => {
                     let user = author // default
                     if (params[0]) {
-                        user = Tools.resolveMention(params[0])
+                        user = Tools.resolveMention(params[0], channel)
                         if (!user) return 'Invalid user, please mention them properly.'
                     }
 

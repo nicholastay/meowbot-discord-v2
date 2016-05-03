@@ -19,7 +19,7 @@
     "babel-register": "^6.7.2",
     "babel-runtime": "^6.6.1",
     "chalk": "^1.1.1",
-    "discord.js": "hydrabolt/discord.js#249b6f9",
+    "discord.js": "github:hydrabolt/discord.js#9700f85",
     "fast-strftime": "^1.1.1",
     "humanize-duration": "^3.7.0",
     "limiter": "^1.1.0",

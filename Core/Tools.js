@@ -31,11 +31,11 @@ const Tools = {
         return promise.then((v) => { return { v, status: 'resolved' }},
                             (e) => { return { e, status: 'rejected' }})
     },
-    resolveMention: (mention) => {
+    resolveMention: (mention, channel) => {
         // Resolves A SINGLE mention with the internal discord.js resolver IF THE MENTION IS VALID (save some cpu, eh? ...)
-        if (/^<@\d+>$/.test(mention)) {
+        if (/^<@!?\d+>$/.test(mention)) {
             // User mention
-            let mentions = Discord.client.internal.resolver.resolveMentions(mention)
+            let mentions = Discord.client.internal.resolver.resolveMentions(mention, channel)
             if (mentions.length < 1 || mentions[0].length < 1) return null
             return mentions[0][0] // not sure why tbh
         }

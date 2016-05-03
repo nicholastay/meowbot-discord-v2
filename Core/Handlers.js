@@ -31,6 +31,14 @@ class Handlers {
         }
 
         Events.on('chat.message', m => this.handleMessage(m).catch(Logging.log))
+
+        try {
+            let ignoreData = fs.readFileSync(path.join(Database._storesPath, 'ignored_users.txt'), 'utf8')
+            this.ignoredUsers = ignoreData.split('\n')
+        }
+        catch (e) {
+            this.ignoredUsers = []
+        }
     }
 
     async handleMessage(message) {
@@ -63,6 +71,10 @@ class Handlers {
                 h.handler(message.content, message.author, message.channel, message.channel.server, message)
             }
         }
+
+
+        // Ignore this guy
+        if (this.ignoredUsers.indexOf(message.author.id) > -1) return
 
 
         // Higher level command handlers

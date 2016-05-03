@@ -1,6 +1,13 @@
 import axios from 'axios'
 import fs from 'fs'
+import path from 'path'
 import thenify from 'thenify'
+
+import Config from '../Core/Config'
+// -- These are imported below for our eval!
+// import Database from '../Core/Database'
+// import Handlers from '../Core/Handlers'
+// import Tools from '../Core/Tools'
 
 const readFileAsync = thenify(fs.readFile) // readFile promise wrapper
 
@@ -58,6 +65,40 @@ class Admin {
                 handler: async (params) => {
                     return Discord.client.setUsername(params.join(' '))
                                          .then(() => { return 'New username sucessfully set.' })
+                }
+            },
+            'ignoreuser': {
+                description: 'Ignore those little 12vies who cannot control themselves from spamming the bot. (or unignore them...)',
+                permissionLevel: 3,
+                requireParams: true,
+                reply: true,
+                handler: async (params, author, channel) => {
+                    let user = Tools.resolveMention(params.join(' '), channel)
+                    if (!user)
+                        return 'You need to mention the user to be ignored...'
+
+                    if (user.id === Discord.client.user.id)
+                        return 'You cannot mute me, I am the one serving you after all you know...'
+
+                    if ((Config.admins || []).indexOf(user.id) > -1)
+                        return 'You cannot ignore a MeowBot admin user...'
+
+                    let ignore = true
+                    if (Handlers.ignoredUsers.indexOf(user.id) > -1) {
+                        // unignore
+                        Handlers.ignoredUsers.splice(Handlers.ignoredUsers.indexOf(user.id), 1)
+                        ignore = false
+                    } else {
+                        // ignore
+                        Handlers.ignoredUsers.push(user.id)
+                    }
+                    
+                    fs.writeFileSync(path.join(Database._storesPath, 'ignored_users.txt'), Handlers.ignoredUsers.join('\n'))
+                    
+                    if (ignore)
+                        return 'The user was successfully ignored from the entirety of the bot.'
+                    else
+                        return 'The user was successfully unignored from the bot.'
                 }
             }
         }
