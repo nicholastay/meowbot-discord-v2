@@ -4,6 +4,18 @@ import Discord from '../Core/Discord'
 class Commands {
     get commands() {
         return {
+            'servercommands': {
+                description: 'Lists all the server commands available for the current server.',
+                blockPM: true,
+                handler: async (params, author, channel, server) => {
+                    let commands = await Database.Commands.find({ command, server: server.id })
+
+                    if (commands.length < 0)
+                        return 'There are no commands available on this server...'
+
+                    return `The commands available for this server are: ${commands.map(c => `\`${c.command}\``).join(', ')}`
+                }
+            },
             'createcommand': {
                 description: 'Creates a custom command for a server that gives a custom text response.',
                 permissionLevel: 1,
