@@ -1,5 +1,6 @@
 import seedrandom from 'seedrandom'
 import axios from 'axios'
+import { RateLimiter } from 'limiter'
 
 import Tools from '../Core/Tools'
 
@@ -27,6 +28,10 @@ const BALL_RESPONSES = [
 ]
 
 class Novelty {
+    constructor() {
+        this.meowLimiter = new RateLimiter(25, 'minute')
+    }
+
     get commands() {
         return {
             'love': {
@@ -53,9 +58,12 @@ class Novelty {
             'meow': {
                 description: 'Meow.',
                 handler: async () => {
-                    let cat = (await axios.get('http://random.cat/meow')).data
-                    if (!cat.file) throw new Error('no cat file/api broke')
-                    return `meow! ${cat.file}`
+                    if (this.meowLimiter.tryRemoveTokens(1)) {
+                        let cat = (await axios.get('http://random.cat/meow')).data
+                        if (!cat.file) throw new Error('no cat file/api broke')
+                        return `meow! ${cat.file}`
+                    }
+                    // otherwise silently drop command
                 }
             }
         }

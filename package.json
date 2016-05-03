@@ -22,6 +22,7 @@
     "discord.js": "hydrabolt/discord.js#249b6f9",
     "fast-strftime": "^1.1.1",
     "humanize-duration": "^3.7.0",
+    "limiter": "^1.1.0",
     "nedb-promise": "^2.0.0",
     "node-opus": "^0.1.12",
     "nodesu": "^0.3.0",
