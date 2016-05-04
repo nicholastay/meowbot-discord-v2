@@ -9,7 +9,14 @@ class Commands {
     }
 
     async reloadGlobals() {
-        this.globals = (await Database.Commands.find({ server: '$g' })) || {}
+        let commands = await Database.Commands.find({ server: '$g' })
+        if (commands.length === 0)
+            return this.globals = {}
+
+        for (let command of commands) {
+            if (!command.command || !command.response) continue // invalid
+            this.globals[command.command] = command.response
+        }
     }
 
     get commands() {
