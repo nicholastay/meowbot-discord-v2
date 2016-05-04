@@ -5,10 +5,10 @@ import Discord from '../Core/Discord'
 class Commands {
     constructor() {
         this.globals = {}
-        this.loadGlobals()
+        this.reloadGlobals()
     }
 
-    async loadGlobals() {
+    async reloadGlobals() {
         this.globals = (await Database.Commands.find({ server: '$g' })) || {}
     }
 
@@ -55,7 +55,11 @@ class Commands {
                     if (existing) return 'This command already exists. If you wish to edit it please use the \'editcommand\' command.'
 
                     return Database.Commands.insert({ command, response, server: serverId })
-                                            .then(() => { return `The command '${command}' was sucessfully added.` })
+                                            .then(() => {
+                                                if (serverId === '$g')
+                                                    this.reloadGlobals()
+                                                return `The command '${command}' was sucessfully added.`
+                                            })
                 }
             },
             'editcommand': {
@@ -79,7 +83,11 @@ class Commands {
                     let existing = await Database.Commands.findOne({ command, server: serverId })
 
                     return Database.Commands.update(existing, { $set: { response: params.join(' ') } })
-                                            .then(() => { return `The command '${command}' was sucessfully edited.` })
+                                            .then(() => {
+                                                if (serverId === '$g')
+                                                    this.reloadGlobals()
+                                                return `The command '${command}' was sucessfully edited.`
+                                            })
                 }
             },
             'removecommand': {
@@ -104,7 +112,11 @@ class Commands {
                     if (!removeCommand) return 'This command does not exist, I cannot remove a command that doesn\'t exist, baka!'
 
                     return Database.Commands.remove(removeCommand)
-                                            .then(() => { return 'The command was successfully removed.' })
+                                            .then(() => {
+                                                if (serverId === '$g')
+                                                    this.reloadGlobals()
+                                                return 'The command was successfully removed.'
+                                            })
                 }
             }
         }
