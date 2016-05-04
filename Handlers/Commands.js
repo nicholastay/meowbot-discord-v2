@@ -76,7 +76,7 @@ class Commands {
                 noPermissionsResponse: 'You require to be at least a server mod to edit a custom MeowBot command.',
                 reply: true,
                 requireParams: true,
-                handler: async (params, author, channel, server) => {
+                handler: async (params, author, channel, server, message) => {
                     let command  = params.shift()
                       , serverId = server.id
 
@@ -104,7 +104,7 @@ class Commands {
                 noPermissionsResponse: 'You require to be at least a server mod to remove custom MeowBot commands.',
                 reply: true,
                 requireParams: true,
-                handler: async (params, author, channel, server) => {
+                handler: async (params, author, channel, server, message) => {
                     let command  = params.shift()
                       , serverId = server.id
 
