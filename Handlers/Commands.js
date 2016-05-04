@@ -31,7 +31,7 @@ class Commands {
 
                     let commands = await Database.Commands.find({ server: serverId })
 
-                    if (commands.length < 0)
+                    if (commands.length < 1)
                         return 'There are no commands available on this server...'
 
                     return `The commands available for this server are: ${commands.map(c => `\`${c.command}\``).join(', ')}`
