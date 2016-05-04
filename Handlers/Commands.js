@@ -5,7 +5,7 @@ import Discord from '../Core/Discord'
 class Commands {
     constructor() {
         this.globals = {}
-        loadGlobals()
+        this.loadGlobals()
     }
 
     async loadGlobals() {
@@ -122,7 +122,7 @@ class Commands {
 
                     // globals can take priority
                     if (this.globals[command])
-                        Discord.sendMessage(channel, this.globals[command])
+                        return Discord.sendMessage(channel, this.globals[command])
 
                     let dbResp = await Database.Commands.findOne({ command, server: server.id })
                     if (!dbResp) return
