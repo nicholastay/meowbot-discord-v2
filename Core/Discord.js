@@ -26,7 +26,10 @@ class Discord {
                 Logging.mlog('Discord', 'Reconnecting to Discord...')
                 this.login()
                     .then(token => {
-                        if (token) clearInterval(reconnInterval) // Logged in, clear interval
+                        if (token) {
+                            clearInterval(reconnInterval) // Logged in, clear interval
+                            this.aliveSince = new Date() // and also set a new alive time
+                        }
                     })
             }
             let reconnInterval = setInterval(() => reconnect(), 2.5 * 60 * 1000)
