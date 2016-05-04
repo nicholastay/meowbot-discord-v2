@@ -120,6 +120,8 @@ class Handlers {
                     if (this.commands[command].hidden) return // shutup on a hidden command
                     return Discord.reply(message, (this.commands[command].noPermissionsResponse || 'You do not have permissions to run that command.'))
                 }
+
+                message.meowPerms = perms
             }
 
             let h = this.commands[command].handler(params, message.author, message.channel, message.channel.server, message)
