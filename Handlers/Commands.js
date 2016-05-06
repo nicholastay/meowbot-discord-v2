@@ -61,6 +61,9 @@ class Commands {
                     let existing = await Database.Commands.findOne({ command, server: serverId })
                     if (existing) return 'This command already exists. If you wish to edit it please use the \'editcommand\' command.'
 
+                    if (command.length === '1')
+                        return 'This command is too short, please consider making it longer.'
+
                     return Database.Commands.insert({ command, response, server: serverId })
                                             .then(() => {
                                                 if (serverId === '$g')
@@ -134,7 +137,8 @@ class Commands {
             {
                 description: 'Command checker and responder',
                 handler: async (message, author, channel, server) => {
-                    let command = message.split(' ').shift()
+                    let i       = message.indexOf(' ')
+                      , command = i < 0 ? message : message.substr(0, i)
 
                     if (Handlers.commands[command])
                         return // yeah lets just ignore this
