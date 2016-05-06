@@ -15,6 +15,7 @@ class Status {
                 this.messages.push({ message: m, status: 'online' })
                 continue
             }
+
             // Object
             this.messages.push(m)
         }
@@ -47,7 +48,9 @@ class Status {
 
         this.events = {
             'discord.ready': () => {
-                if (this.intervals.length < 1) this.intervals = [setInterval(this.updateStatus.bind(this), this.rotateEvery)] // if disconnected and back
+                if (this.intervals.length < 1)
+                    this.intervals = [setInterval(this.updateStatus.bind(this), this.rotateEvery)] // if disconnected and back
+
                 this.updateStatus() // kick it off with the first one
                 Logging.mlog('StatusH', `Interval set, will rotate status messages every ${this.rotateEvery / 1000 / 60} minutes.`)
             },
@@ -65,11 +68,13 @@ class Status {
         } else {
             index = this.counter
             this.counter++
-            if (this.counter >= this.messages.length) this.counter = 0
+            if (this.counter >= this.messages.length)
+                this.counter = 0
         }
 
         let s = Discord.client.setStatus(this.messages[index].status, this.messages[index].message).catch(Logging.log)
-        if (Config.status.printOnChange) s.then(() => Logging.mlog('StatusH', `Status changed to: ${this.messages[index].message} [${this.messages[index].status}].`))
+        if (Config.status.printOnChange)
+            s.then(() => Logging.mlog('StatusH', `Status changed to: ${this.messages[index].message} [${this.messages[index].status}].`))
     }
 
     get commands() {

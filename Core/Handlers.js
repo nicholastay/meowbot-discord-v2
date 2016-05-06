@@ -49,7 +49,8 @@ class Handlers {
 
         // Prefix checking and grabbing from db
         let serverSettings = {}
-        if (!message.private) serverSettings = (await Database.Servers.findOne({ server: message.channel.server.id })) || {}
+        if (!message.private)
+            serverSettings = (await Database.Servers.findOne({ server: message.channel.server.id })) || {}
 
         let rawPrefix      = serverSettings.prefix || Config.prefix || '!'
           , prefix         = (rawPrefix === '$mention$') ? `<@${Discord.client.user.id}> ` : rawPrefix
@@ -66,31 +67,43 @@ class Handlers {
         // Basic low-level message handlers
         for (let k in this.handlers) {
             for (let h of this.handlers[k]) {
-                if (message.self && !h.allowSelf) continue // since this is a more crude handler, allow such behavior if explicitly set
-                if (ignored && !h.allowIgnored) continue
+                // since this is a more crude handler, allow such behavior if explicitly set
+                if (message.self && !h.allowSelf)
+                    continue
+                if (ignored && !h.allowIgnored)
+                    continue
+
                 h.handler(message.content, message.author, message.channel, message.channel.server, message)
             }
         }
 
 
         // Ignore this guy
-        if (this.ignoredUsers.indexOf(message.author.id) > -1) return
+        if (this.ignoredUsers.indexOf(message.author.id) > -1)
+            return
 
 
         // Higher level command handlers
-        if (message.self) return // no commands allowed to be by self
-        if (!message.content.startsWith(prefix)) return
+        if (message.self)
+            return // no commands allowed to be by self
+        if (!message.content.startsWith(prefix))
+            return // not even a command
 
         let params  = message.content.replace(prefix, '').split(' ') // strip prefix & leave as array of params
           , command = params.shift()
 
         if (this.commands[command]) {
-            if (this.commands[command]._alias) command = this.commands[command]._alias // switch context to alias
-            if (ignored && !this.commands[command].allowIgnored) return // nope dont run ignored here
+            if (this.commands[command]._alias)
+                command = this.commands[command]._alias // switch context to alias
+
+            if (ignored && !this.commands[command].allowIgnored)
+                return // nope dont run ignored here
 
             if (this.commands[command].requireParams) { // command requires some params
                 let count = Number(this.commands[command].requireParams) // number of params required
-                if (!count) count = 1 // default like if set to 'true' means just 1 param required
+
+                if (!count)
+                    count = 1 // default like if set to 'true' means just 1 param required
 
                 if (params.length < count) {
                     if (this.commands[command].requireParamsResponse === null) return // null = shutup
@@ -98,18 +111,20 @@ class Handlers {
                 }
             }
 
-            if ((this.commands[command].blockGeneral && !message.private) || (this.commands[command].blockPM && message.private)) return // if in a general server chat and its a pm or other way round dont allow it based on command settings
+            if ((this.commands[command].blockGeneral && !message.private) ||
+                (this.commands[command].blockPM && message.private))
+                return // if in a general server chat and its a pm or other way round dont allow it based on command settings
 
             if (this.commands[command].permissionLevel) {
                 // Basic permissions
                 // 0 = general nobody, 1 = server mod, 2 = server admin, 3 = bot admin
                 let perms = 0
-                if (Config.admins.indexOf(message.author.id) > -1)
+                if (Config.admins.indexOf(message.author.id) > -1) {
                     perms = 3
-                else if (!message.private) {
-                    if (message.channel.server.ownerID === message.author.id)
+                } else if (!message.private) {
+                    if (message.channel.server.ownerID === message.author.id) {
                         perms = 2
-                    else {
+                    } else {
                         let userRoles = message.channel.server.rolesOfUser(message.author)
                         if (userRoles.find(r => r.name === 'MeowAdmins')) perms = 2
                         else if (userRoles.find(r => r.name === 'MeowMods')) perms = 1
@@ -117,7 +132,9 @@ class Handlers {
                 }
 
                 if (this.commands[command].permissionLevel > perms) {
-                    if (this.commands[command].hidden) return // shutup on a hidden command
+                    if (this.commands[command].hidden)
+                        return // shutup on a hidden command
+
                     return Discord.reply(message, (this.commands[command].noPermissionsResponse || 'You do not have permissions to run that command.'))
                 }
 
@@ -144,11 +161,16 @@ class Handlers {
     load(handlerName) {
         try {
             let h = require(`../Handlers/${handlerName}`)
+
             if (h.handlers) {
-                if (!Array.isArray(h.handlers)) return
+                if (!Array.isArray(h.handlers))
+                    return // invalid type
+
                 this.handlers[handlerName] = h.handlers
                 Logging.mlog('Handlers', `Loaded ${h.handlers.length} message handler(s) from '${handlerName}'.`)
             }
+
+
             if (h.commands) {
                 let commands = []
                 for (let k in h.commands) {
@@ -156,9 +178,11 @@ class Handlers {
                         Logging.mlog('Handlers', `A command with trigger '${k}' already exists, it has not been overrided from the one from '${handlerName}'.`)
                         continue
                     }
+
                     this.commands[k] = h.commands[k]
                     this.commands[k].fromHandler = handlerName
                     commands.push(k)
+
                     if (this.commands[k].alias) {
                         let aliases = []
                         for (let a of this.commands[k].alias) {
@@ -179,18 +203,27 @@ class Handlers {
                 }
                 Logging.mlog('Handlers', `Loaded ${commands.length} commands from '${handlerName}'. [${commands.join(', ')}]`)
             }
+
+
             if (h.intervals) {
-                if (!Array.isArray(h.intervals)) return
+                if (!Array.isArray(h.intervals))
+                    return
+
                 this.intervals[handlerName] = h.intervals
                 Logging.mlog('Handlers', `Loaded ${h.intervals.length} interval(s) from '${handlerName}'.`)
             }
+
+
             if (h.events) {
                 this.events[handlerName] = h.events
-                for (let k in this.events[handlerName]) {
+
+                for (let k in this.events[handlerName])
                     Events.on(k, this.events[handlerName][k])
-                }
+
                 Logging.mlog('Handlers', `Loaded ${Object.keys(this.events[handlerName]).length} event listener(s) from '${handlerName}'.`)
             }
+
+
             Logging.mlog('Handlers', `Loaded handler '${handlerName}'.`)
         }
         catch (e) {
@@ -200,25 +233,31 @@ class Handlers {
 
     unload(handlerName) {
         if (Tools.hotUnload(`../Handlers/${handlerName}`)) {
-            if (this.handlers[handlerName]) delete(this.handlers[handlerName])
+            if (this.handlers[handlerName])
+                delete(this.handlers[handlerName]) // delete from our existing loaded module
+
             if (Object.keys(this.commands).length > 0) {
                 for (let k in this.commands) {
-                    if (this.commands[k].fromHandler === handlerName) delete this.commands[k]
+                    if (this.commands[k].fromHandler === handlerName)
+                        delete this.commands[k]
                 }
             }
+
             if (this.intervals[handlerName]) {
-                for (let i of this.intervals[handlerName]) {
+                for (let i of this.intervals[handlerName])
                     clearInterval(i)
-                }
+
                 delete(this.intervals[handlerName])
             }
+
             if (this.events[handlerName]) {
-                for (let k in this.events[handlerName]) {
+                for (let k in this.events[handlerName])
                     Events.removeListener(k, this.events[handlerName][k])
-                }
             }
+
             return Logging.mlog('Handlers', `Unloaded handler '${handlerName}'.`)
         }
+
         Logging.mlog('Handlers', `'${handlerName}' could not be unloaded, nothing has changed.`)
     }
 
@@ -237,12 +276,17 @@ class Handlers {
 
     _loadunloadAll(unload) {
         Logging.mlog('Handlers', `${unload ? 'Unl' : 'L'}oading all handler(s)...`)
+        
         for (let handler of fs.readdirSync(path.join(__dirname, '../Handlers'))) {
-            if (path.extname(handler) !== '.js') continue
+            if (path.extname(handler) !== '.js')
+                continue // not a js
 
-            if (unload) this.unload(handler.replace('.js', ''))
-            else this.load(handler.replace('.js', ''))
+            if (unload)
+                this.unload(handler.replace('.js', ''))
+            else
+                this.load(handler.replace('.js', ''))
         }
+
         Logging.mlog('Handlers', `All handler(s) ${unload ? 'unl' : 'l'}oaded.`)
     }
 

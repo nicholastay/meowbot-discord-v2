@@ -48,24 +48,30 @@ class VoiceConnection {
     }
 
     set nowPlaying(data) {
-        if (data) Discord.sendMessage(this.textChannel, `**Now Playing**: **[${data.type}] ${data.name}** *(requested by ${data.requester.name})*`)
+        if (data)
+            Discord.sendMessage(this.textChannel, `**Now Playing**: **[${data.type}] ${data.name}** *(requested by ${data.requester.name})*`)
+
         this._nowPlaying = data
     }
 
     addToQueue(data) {
         this.queue.push(data)
-        if (!this.nowPlaying) {
+        if (!this.nowPlaying)
             return this.playNext()
-        }
     }
 
     async playNext() {
-        if (!Discord.client.voiceConnection) return
-        let nowPlay = this.queue.shift()
-        if (!nowPlay) return Discord.sendMessage(this.textChannel, 'There are no more items in the queue, playback has now stopped.')
+        if (!Discord.client.voiceConnection)
+            return
 
-        if (nowPlay.file) this.intent = await this.connection.playFile(nowPlay.file, { volume: this.volume })
-        else this.intent = await this.connection.playRawStream(nowPlay.stream, { volume: this.volume })
+        let nowPlay = this.queue.shift()
+        if (!nowPlay)
+            return Discord.sendMessage(this.textChannel, 'There are no more items in the queue, playback has now stopped.')
+
+        if (nowPlay.file)
+            this.intent = await this.connection.playFile(nowPlay.file, { volume: this.volume })
+        else
+            this.intent = await this.connection.playRawStream(nowPlay.stream, { volume: this.volume })
 
         this.nowPlaying = nowPlay
     }
@@ -74,9 +80,8 @@ class VoiceConnection {
 class Voice {
     constructor() {
         if (Discord.client.voiceConnections.length > 0) {
-            for (let vc of Discord.client.voiceConnections) {
+            for (let vc of Discord.client.voiceConnections)
                 Discord.client.leaveVoiceChannel(vc)
-            }
         }
 
         this.connections = {} // structure: {text channel binded: VoiceConnection object}
@@ -109,27 +114,26 @@ class Voice {
                                       .catch(e => { return `There was an error leaving voice... *${e}*` })
                     }
 
-                    if (this.connections[server.id] && this.connections[server.id].textChannel.id === channel.id) {
+                    if (this.connections[server.id] && this.connections[server.id].textChannel.id === channel.id)
                         return `This text channel is already connected to and bound to the voice channel '${this.connections[server.id].connection.voiceChannel.name}'!`
-                    }
 
-                    if (this.connections[server.id]) {
+                    if (this.connections[server.id])
                         return `There is already an active voice connection for this server. There can only be one voice connection per server. For you information, I am currently in '${this.connections[server.id].connection.voiceChannel.name}' (bound to text channel ${this.connections[server.id].textChannel.mention()}).`
-                    }
 
 
                     let allowedVoice = ((await Database.Servers.findOne({ server: server.id })) || {}).allowVoice
-                    if (!allowedVoice) {
+                    if (!allowedVoice)
                         return 'This server does not have the voice functionality enabled. This is due to the high bandwidth and resource usage used when streaming audio. You can ask Nexerq (or any other bot admins) to request for access to this feature.'
-                    }
 
 
-                    if (!params[0]) return 'You need to specify a voice channel for me to join!'
+                    if (!params[0])
+                        return 'You need to specify a voice channel for me to join!'
                     //if (Discord.client.voiceConnection) return 'I am currently in a voice channel of another channel/server, sorry!'
 
                     let chanName   = params.join(' ')
                       , voiceChan  = server.channels.find(c => c.type === 'voice' && c.name === chanName)
-                    if (!voiceChan) return 'Invalid voice channel specified for this server! Ensure you have spelt it correctly.'
+                    if (!voiceChan)
+                        return 'Invalid voice channel specified for this server! Ensure you have spelt it correctly.'
 
                     return Discord.client
                                   .joinVoiceChannel(voiceChan)
@@ -144,7 +148,8 @@ class Voice {
                 description: 'Outputs the current queue. Must be invoked in a bound text<->voice channel.',
                 blockPM: true,
                 handler: (params, author, channel, server) => {
-                    if (!this.connections[server.id]) return
+                    if (!this.connections[server.id])
+                        return
 
                     let nowPlaying = this.connections[server.id].nowPlaying
                       , queue      = this.connections[server.id].queue
@@ -162,7 +167,8 @@ class Voice {
                 description: 'Outputs the current track playing. Must be invoked in a bound text<->voice channel.',
                 blockPM: true,
                 handler: (params, author, channel, server) => {
-                    if (!this.connections[server.id]) return
+                    if (!this.connections[server.id])
+                        return
 
                     let progress   = null // progress bar for yt videos
                       , connection = this.connections[server.id]
@@ -171,15 +177,23 @@ class Voice {
                           , vidLength  = connection.nowPlaying.length
                           , vidMins    = String(vidLength % 60)
                           , nowMins    = String(nowSeconds % 60)
-                        if (vidMins.length === 1) vidMins = `0${vidMins}`
-                        if (nowMins.length === 1) nowMins = `0${nowMins}`
+
+                        if (vidMins.length === 1)
+                            vidMins = `0${vidMins}`
+                        if (nowMins.length === 1)
+                            nowMins = `0${nowMins}`
 
                         progress = `\n**`
                         // bar - calculate filled in chunks vs not
                         let filled = Math.floor(nowSeconds / vidLength * 20) // out of twenty chunks
-                        for (let i = 1; i < filled; i++) progress += '-' // one less as special circle
+                        for (let i = 1; i < filled; i++)
+                            progress += '-' // one less as special circle
+
                         progress += '○**'
-                        for (let i = 0; i < (20 - filled); i++) progress += '-'
+
+                        for (let i = 0; i < (20 - filled); i++)
+                            progress += '-'
+
                         progress += ` \`${Math.floor(nowSeconds / 60)}:${nowMins}/${Math.floor(vidLength / 60)}:${vidMins}\``
                     }
 
@@ -192,7 +206,8 @@ class Voice {
                 hidden: true,
                 requireParams: true,
                 handler: async (params, author, channel, server) => {
-                    if (!this.connections[server.id]) return
+                    if (!this.connections[server.id])
+                        return
 
                     let file = params.join(' ')
                       , name = file.split('/').pop()
@@ -211,7 +226,8 @@ class Voice {
                 reply: true,
                 requireParams: true,
                 handler: async (params, author, channel, server) => {
-                    if (!this.connections[server.id]) return
+                    if (!this.connections[server.id])
+                        return
 
                     let lookup = params.join(' ')
                       , conn   = this.connections[server.id]
@@ -237,7 +253,8 @@ class Voice {
                             let info = await ytdl.getInfoAsync(`http://youtube.com/watch?v=${youtubeLookup[4]}`)
                               , stream = ytdl.downloadFromInfo(info, { quality: 140 })
                                              .on('error', e => {
-                                                 if (e.code === 'ECONNRESET') return Discord.client.sendMessage(conn.textChannel, 'Hit a connection error to YouTube while trying to play the track, bot\'s connection to their servers may be unstable. Skipping to next video...')
+                                                 if (e.code === 'ECONNRESET')
+                                                    return Discord.client.sendMessage(conn.textChannel, 'Hit a connection error to YouTube while trying to play the track, bot\'s connection to their servers may be unstable. Skipping to next video...')
                                                  Logging.mlog('VoiceH', `YTDL stream error - ${e}`)
                                                  // Discord.client.sendMessage(this.textChannel, 'There was a backend error during playback... please try again later.')
                                              })
@@ -265,10 +282,12 @@ class Voice {
                 blockPM: true,
                 requireParams: true,
                 handler: (params, author, channel, server) => {
-                    if (!this.connections[server.id]) return
+                    if (!this.connections[server.id])
+                        return
 
                     let volume = Number(params[0].replace(/%$/, ''))
-                    if (!volume) return 'Invalid volume to set, must be in the form of \'77[%]\'.'
+                    if (!volume)
+                        return 'Invalid volume to set, must be in the form of \'77[%]\'.'
 
                     this.connections[server.id].volume = volume / 100
                     this.connections[server.id].connection.setVolume(volume / 100)
@@ -279,13 +298,15 @@ class Voice {
                 description: 'Vote/start a vote to skip the currently playing track. Must be used in a text<->voice bound channel.',
                 blockPM: true,
                 handler: (params, author, channel, server) => {
-                    if (!this.connections[server.id]) return
+                    if (!this.connections[server.id])
+                        return
 
                     let conn = this.connections[server.id]
                     if (!conn.voting) {
                         // Starting a new vote.
                         let members = conn.connection.voiceChannel.members // voice channel members
-                        if (!members.get('id', author.id)) return `${author.mention()}, you are not in the voice channel, you do not have a right to vote/start a vote.`
+                        if (!members.get('id', author.id))
+                            return `${author.mention()}, you are not in the voice channel, you do not have a right to vote/start a vote.`
 
                         if (members.length === 2) {
                             // 2 members, only bot + user, just skip
@@ -310,13 +331,10 @@ class Voice {
                         return `**${author.name} has voted to skip the current track** *(${conn.nowPlaying.name})*. Starting a vote with the current members of the voice channel. ${conn.voting.votesRequired} votes are required to skip. There is currently 1 vote. Time remaining: 90 second(s)`
                     } else {
                         // Using a current vote.
-                        if (conn.voting.members.indexOf(author.id) < 0) {
-                            // invalid user from those casted
-                            return `${author.mention()}, you were not in the voice channel at the time the voting started. You do not have a right to vote in this round.`
-                        }
-                        if (conn.voting.voted.indexOf(author.id) > -1) {
+                        if (conn.voting.members.indexOf(author.id) < 0)
+                            return `${author.mention()}, you were not in the voice channel at the time the voting started. You do not have a right to vote in this round.` // invalid user from those casted
+                        if (conn.voting.voted.indexOf(author.id) > -1)
                             return `${author.mention()}, you have already voted to skip for this round!`
-                        }
 
                         conn.voting.voted.push(author.id)
 
@@ -336,7 +354,9 @@ class Voice {
                 permissionLevel: 1,
                 blockPM: true,
                 handler: (params, author, channel, server) => {
-                    if (!this.connections[server.id]) return
+                    if (!this.connections[server.id])
+                        return
+                    
                     this.connections[server.id].connection.stopPlaying()
                     return '**[MOD ACTION]** Forcefully skipped the currently playing track.'
                 }

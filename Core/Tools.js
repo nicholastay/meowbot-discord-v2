@@ -12,12 +12,16 @@ const Tools = {
         let role         = server.rolesOfUser(Discord.client.user).find(r => r.name === 'Meow')
           , missingRoles = []
 
-        if (!role) return permissions
+        if (!role)
+            return permissions
 
         for (let p of permissions) {
-            if (!role.hasPermission(p)) missingRoles.push(p)
+            if (!role.hasPermission(p))
+                missingRoles.push(p)
         }
-        if (missingRoles.length < 1) missingRoles = null
+
+        if (missingRoles.length < 1)
+            missingRoles = null
 
         return missingRoles
     },
@@ -36,15 +40,22 @@ const Tools = {
         if (/^<@!?\d+>$/.test(mention)) {
             // User mention
             let mentions = Discord.client.internal.resolver.resolveMentions(mention, channel)
-            if (mentions.length < 1 || mentions[0].length < 1) return null
-            return mentions[0][0] // not sure why tbh
+
+            if (mentions.length < 1 || mentions[0].length < 1)
+                return null
+
+            return mentions[0][0]
         }
 
+        // channel resolving
         let channelLookup = /^<#(\d+)>$/.exec(mention)
         if (channelLookup) {
             // Channel mention
             let channel = Discord.client.channels.find(c => c.id === channelLookup[1])
-            if (!channel) return null
+
+            if (!channel)
+                return null
+
             return channel
         }
 
@@ -58,6 +69,7 @@ const Tools = {
             await Database.Servers.remove({ server: server.id })
             return true
         }
+        
         return false
     }
 }

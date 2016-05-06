@@ -14,7 +14,9 @@ class Commands {
             return this.globals = {}
 
         for (let command of commands) {
-            if (!command.command || !command.response) continue // invalid
+            if (!command.command || !command.response)
+                continue // invalid
+            
             this.globals[command.command] = command.response
         }
     }
@@ -49,7 +51,8 @@ class Commands {
                       , response = params.join(' ')
                       , serverId = server.id
 
-                    if (!response) return 'You need to provide a response for this command!'
+                    if (!response)
+                        return 'You need to provide a response for this command!'
 
                     if (command.startsWith('$g:')) {
                         if (message.meowPerms < 3)
@@ -59,7 +62,8 @@ class Commands {
                     }
 
                     let existing = await Database.Commands.findOne({ command, server: serverId })
-                    if (existing) return 'This command already exists. If you wish to edit it please use the \'editcommand\' command.'
+                    if (existing)
+                        return 'This command already exists. If you wish to edit it please use the \'editcommand\' command.'
 
                     if (command.length === '1')
                         return 'This command is too short, please consider making it longer.'
@@ -148,7 +152,8 @@ class Commands {
                         return Discord.sendMessage(channel, this.globals[command])
 
                     let dbResp = await Database.Commands.findOne({ command, server: server.id })
-                    if (!dbResp) return
+                    if (!dbResp)
+                        return
 
                     Discord.sendMessage(channel, dbResp.response)
                 }

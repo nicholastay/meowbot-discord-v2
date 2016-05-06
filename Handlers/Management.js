@@ -18,12 +18,15 @@ class Management {
                     if (!/^#?[A-Fa-f0-9]{6}$/.test(params[0])) return 'Invalid hex color specified.'
 
                     let missingPerms = Tools.checkOwnPermissions(server, ['manageRoles'])
-                    if (missingPerms) return fancyPrintPerms(missingPerms)
+                    if (missingPerms)
+                        return fancyPrintPerms(missingPerms)
 
                     let color    = parseInt(params.shift().replace('#', ''), 16)
                       , roleName = params.join(' ')
                       , role     = server.roles.get('name', roleName)
-                    if (!role) return 'Invalid role specified for this server.'
+
+                    if (!role)
+                        return 'Invalid role specified for this server.'
 
                     return Discord.client.updateRole(role, { color })
                                          .then(() => { return 'Updated the role\'s color successfully.' })
@@ -41,13 +44,15 @@ class Management {
                     if (!/^#?[A-Fa-f0-9]{6}$/.test(params[0])) return 'Invalid hex color specified.'
 
                     let missingPerms = Tools.checkOwnPermissions(server, ['manageRoles'])
-                    if (missingPerms) return fancyPrintPerms(missingPerms)
+                    if (missingPerms)
+                        return fancyPrintPerms(missingPerms)
 
                     let color = parseInt(params.shift().replace('#', ''), 16)
                       , user  = author
                     if (params[0]) {
                         user = Tools.resolveMention(params[0], channel)
-                        if (!user) return 'Invalid user specified! You must mention the user in this argument.'
+                        if (!user)
+                            return 'Invalid user specified! You must mention the user in this argument.'
                     }
 
                     let existingRole = server.roles.get('name', new RegExp(`\\(MeowColors#${user.id}\\)$`))
@@ -75,7 +80,8 @@ class Management {
                 requireParams: true,
                 handler: async (params, author, channel, server) => {
                     let cleanCount = Number(params[0])
-                    if (!cleanCount) return 'You need to give me a number of my own messages to clean!'
+                    if (!cleanCount)
+                        return 'You need to give me a number of my own messages to clean!'
 
                     let missingPerms = Tools.checkOwnPermissions(server, ['readMessageHistory'])
                     // if (missingPerms) return fancyPrintPerms(missingPerms)
@@ -83,19 +89,24 @@ class Management {
                     let messages = await Discord.client.getChannelLogs(channel, 100)
                       , myMsgs   = messages.filter(m => m.author.id === Discord.client.user.id)
 
-                    if (myMsgs.length < 1) return 'There were no messages by me to clean up in the last 100 messages.'
+                    if (myMsgs.length < 1)
+                        return 'There were no messages by me to clean up in the last 100 messages.'
 
                     let promises = []
                       , i = 0
                     for (let m of myMsgs) {
                         promises.push(Tools.reflect(Discord.client.deleteMessage(m)))
                         i++
-                        if (i >= cleanCount) break
+
+                        if (i >= cleanCount)
+                            break
                     }
 
                     return Promise.all(promises)
                                   .then(res => {
-                                      if (params[1] === 'silent') return null
+                                      if (params[1] === 'silent')
+                                        return null
+
                                       return `Removed ${res.filter(x => x.status === 'resolved').length} message(s) from the last 100 that I have sent.${missingPerms ? ' *(This command works better if I have the \`Read Message History\` permission in a role called \'Meow\'.)*' : ''}`
                                   })
                 }
@@ -109,23 +120,33 @@ class Management {
                 requireParams: true,
                 handler: async (params, author, channel, server) => {
                     let pruneCount = Number(params[0])
-                    if (!pruneCount) return 'You need to give me a number of messages to prune!'
+                    if (!pruneCount)
+                        return 'You need to give me a number of messages to prune!'
 
                     let missingPerms = Tools.checkOwnPermissions(server, ['readMessageHistory', 'manageMessages'])
-                    if (missingPerms) return fancyPrintPerms(missingPerms)
+                    if (missingPerms)
+                        return fancyPrintPerms(missingPerms)
 
-                    if (pruneCount > 100) return 'The maximum I can prune at a time is 100 messages. Please lower the number and try again.'
+                    if (pruneCount > 100)
+                        return 'The maximum I can prune at a time is 100 messages. Please lower the number and try again.'
 
                     let silent = params[1] === 'silent' // silent, remove command & PM user after prune
                       , messages = await Discord.client.getChannelLogs(channel, pruneCount+1) // +1 as including the command invoked
                       , promises = []
 
-                    if (!silent) messages.shift() // disregard command normally
-                    for (let m of messages) promises.push(Tools.reflect(Discord.client.deleteMessage(m)))
+                    if (!silent)
+                        messages.shift() // disregard command normally
+
+                    for (let m of messages)
+                        promises.push(Tools.reflect(Discord.client.deleteMessage(m)))
+
                     return Promise.all(promises)
                                   .then(res => {
                                       let reply = `Pruned the last ${res.filter(x => x.status === 'resolved').length} messages(s)`
-                                      if (!silent) return `${reply}.`
+
+                                      if (!silent)
+                                          return `${reply}.`
+
                                       Discord.sendMessage(author, `${reply} silently. [${server.name} :: #${channel.name}]`)
                                       return null
                                   })
@@ -142,13 +163,14 @@ class Management {
                     let prefix = params.join(' ')
                     if (!prefix || prefix === Config.prefix) {
                         let serverd = (await Database.Servers.findOne({ server: server.id }) || {})
-                        if (!serverd.prefix) {
+
+                        if (!serverd.prefix)
                             return 'This server does not currently have a custom prefix. You need to specify one to change to!'
-                        }
+
                         delete(serverd.prefix)
-                        if (!(await Tools.deleteIfBlankDBRow(serverd))) {
+                        if (!(await Tools.deleteIfBlankDBRow(serverd)))
                             await Database.Servers.update({ server: server.id }, { $unset: { prefix: true } }, { upsert: true })
-                        }
+
                         return `Prefix for this server has been reset to the default: \`${prefix}\`.`
                     }
 
@@ -164,11 +186,15 @@ class Management {
                 reply: true,
                 handler: async (params, author, channel, server) => {
                     let ignoreChannel = channel
-                    if (params[0]) ignoreChannel = Tools.resolveMention(params.join(' '), channel)
-                    if (!ignoreChannel) return 'Invalid channel to be ignored. Please ensure you are mentioning the channel in question.'
+
+                    if (params[0])
+                        ignoreChannel = Tools.resolveMention(params.join(' '), channel)
+                    if (!ignoreChannel)
+                        return 'Invalid channel to be ignored. Please ensure you are mentioning the channel in question.'
 
                     let alreadyIgnored = ((await Database.Servers.findOne({ server: server.id })) || {}).ignoreChannels || []
-                    if (alreadyIgnored.indexOf(ignoreChannel.id) > -1) return 'The channel is already being ignored by MeowBot.'
+                    if (alreadyIgnored.indexOf(ignoreChannel.id) > -1)
+                        return 'The channel is already being ignored by MeowBot.'
 
                     await Database.Servers.update({ server: server.id }, { $push: { ignoreChannels: ignoreChannel.id } }, { upsert: true })
                     return 'The channel is now being ignored. *(you can still use the `unignore` command here to unignore it.)*'
@@ -183,18 +209,21 @@ class Management {
                 allowIgnored: true,
                 handler: async (params, author, channel, server) => {
                     let ignoreChannel = channel
-                    if (params[0]) ignoreChannel = Tools.resolveMention(params.join(' '), channel)
-                    if (!ignoreChannel) return 'Invalid channel to be unignored. Please ensure you are mentioning the channel in question.'
+
+                    if (params[0])
+                        ignoreChannel = Tools.resolveMention(params.join(' '), channel)
+                    if (!ignoreChannel)
+                        return 'Invalid channel to be unignored. Please ensure you are mentioning the channel in question.'
 
                     let serverd = (await Database.Servers.findOne({ server: server.id }) || {})
                       , ignored = serverd.ignoreChannels || []
                       , index   = ignored.indexOf(ignoreChannel.id)
-                    if (index < 0) return 'The channel is currently not being ignored by MeowBot.'
+                    if (index < 0)
+                        return 'The channel is currently not being ignored by MeowBot.'
 
                     serverd.ignoreChannels.splice(index, 1)
-                    if (!(await Tools.deleteIfBlankDBRow(serverd))) {
+                    if (!(await Tools.deleteIfBlankDBRow(serverd)))
                         await Database.Servers.update({ server: server.id }, { ignoreChannels: ignored }, { upsert: true })
-                    }
 
                     return 'The channel is now being monitored again by MeowBot.'
                 }

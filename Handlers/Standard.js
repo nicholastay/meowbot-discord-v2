@@ -28,19 +28,23 @@ class Standard {
                     if (!params[0]) {
                         let commands = []
                         for (let k in Handlers.commands) {
-                            if (!Handlers.commands[k].hidden && !Handlers.commands[k]._alias) commands.push(`\`${k}\``)
+                            if (!Handlers.commands[k].hidden && !Handlers.commands[k]._alias)
+                                commands.push(`\`${k}\``)
                         }
                         return `Commands I have: ${commands.join(', ')}\n*(use \`help [command]\` to get help for an individual command.)*`
                     }
 
                     let command = params[0]
-                    if (Handlers.commands[command] && Handlers.commands[command]._alias) command = Handlers.commands[command]._alias // alias redir
-                    if (!Handlers.commands[command] || Handlers.commands[command].hidden) return `There is no such command as '${params[0]}'` // act dumb on a hidden command :P
+                    if (Handlers.commands[command] && Handlers.commands[command]._alias)
+                        command = Handlers.commands[command]._alias // alias redir
+                    if (!Handlers.commands[command] || Handlers.commands[command].hidden)
+                        return `There is no such command as '${params[0]}'` // act dumb on a hidden command :P
 
                     let aliases = null
                     if (Handlers.commands[command].alias) {
                         aliases = ''
-                        for (let a of Handlers.commands[command].alias) aliases += ` ${a}`
+                        for (let a of Handlers.commands[command].alias)
+                            aliases += ` ${a}`
                     }
 
                     let permissions = null
@@ -70,7 +74,9 @@ class Standard {
 
                     let generalMsg = '\nSome general info: The general roles that MeowBot uses are *MeowMods* and *MeowAdmins*. You should make these two roles and add server admins to the *MeowAdmins* role, and any server mods to the other. The server owner (*probably* you), will always have access any MeowAdmins permissions. These roles give certain permissions in the bot to these users to do certain things. For certain commands you may also need to give these roles certain permissions for them to function properly.'
                     if (!Discord.client.user.bot) {
-                        if (!params[1]) return 'You must provide an invite ID/URL for me to join!...'
+                        if (!params[1])
+                            return 'You must provide an invite ID/URL for me to join!...'
+
                         return Discord.client.joinServer(params[1])
                                              .then(server => { return `Joined your server - ${server.name} (${server.id}) <Owned by ${server.owner.username}#${server.owner.discriminator}>\n${generalMsg}` })
                     }
@@ -100,7 +106,8 @@ Roles: Aware of ${server.roles.length} roles.
                     let user = author // default
                     if (params[0]) {
                         user = Tools.resolveMention(params[0], channel)
-                        if (!user) return 'Invalid user, please mention them properly.'
+                        if (!user)
+                            return 'Invalid user, please mention them properly.'
                     }
 
                     let userServerData = server.detailsOf(user)

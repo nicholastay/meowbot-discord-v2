@@ -28,6 +28,7 @@ class Admin {
                 requireParamsResponse: null,
                 handler: (params, author, channel, message) => {
                     let resp
+
                     try {
                         resp = eval(params.join(' '))
                     }
@@ -50,8 +51,10 @@ class Admin {
 
                     Discord.sendMessage(channel, 'One sec, grabbing and uploading picture...')
 
-                    if (/^https?:\/\//.test(resource)) b64data = (await axios.get(resource, { responseType: 'arraybuffer' })).data // URL
-                    else b64data = await readFileAsync(resource) // File
+                    if (/^https?:\/\//.test(resource))
+                        b64data = (await axios.get(resource, { responseType: 'arraybuffer' })).data // URL
+                    else
+                        b64data = await readFileAsync(resource) // File
 
                     return Discord.client.setAvatar(b64data)
                                          .then(() => { return 'New avatar sucessfully set.' })

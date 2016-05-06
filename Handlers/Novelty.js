@@ -60,7 +60,10 @@ class Novelty {
                 handler: async () => {
                     if (this.meowLimiter.tryRemoveTokens(1)) {
                         let cat = (await axios.get('http://random.cat/meow')).data
-                        if (!cat.file) throw new Error('no cat file/api broke')
+
+                        if (!cat.file)
+                            throw new Error('no cat file/api broke')
+                        
                         return `meow! ${cat.file}`
                     }
                     // otherwise silently drop command

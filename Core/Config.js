@@ -19,9 +19,12 @@ class Config {
         if (!first) {
             // Unload
             for (let k of _keys) {
-                if (this[k]) delete(this[k])
+                if (this[k])
+                    delete(this[k])
             }
-            if (Tools.hotUnload('../config')) Logging.mlog('Config', 'Config unloaded.')
+
+            if (Tools.hotUnload('../config'))
+                Logging.mlog('Config', 'Config unloaded.')
         }
 
         let config = require('../config')
