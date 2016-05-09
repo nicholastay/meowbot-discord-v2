@@ -110,7 +110,7 @@ Roles: Aware of ${server.roles.length} roles.
                             return 'Invalid user, please mention them properly.'
                     }
 
-                    return `${(user.id === author.id) ? 'Your' : `\`${user.name}\`'s`} avatar: \`${user.avatarURL}\``
+                    return `${(user.id === author.id) ? 'Your' : `\`${user.name}\`'s`} avatar: ${user.avatarURL}`
                 }
             },
             'userinfo': {
