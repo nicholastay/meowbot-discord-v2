@@ -25,7 +25,10 @@ class Status {
         if (Config.status.messages.length < 2) {
             this.events = { // Update on first connect & disconnects
                 'discord.ready': () => {
-                    Discord.client.setStatus(this.messages[0].status, this.messages[0].message)
+                    if (this.messages[0].status === 'streaming')
+                        Discord.client.setStreaming(this.messages[0].message, this.messages[0].url || 'https://github.com/nicholastay/meowbot-discord-v2', 1).catch(Logging.log)
+                    else
+                        Discord.client.setStatus(this.messages[0].status, this.messages[0].message).catch(Logging.log)
                 }
             }
             return Logging.mlog('StatusH', 'Status rotation disabled, setting first one only.')
@@ -75,7 +78,7 @@ class Status {
 
         let s
         if (this.messages[index].status === 'streaming')
-            s = Discord.client.setStreaming(this.messages[index].message, this.messages[index].url || 'https://github.com/nicholastay/meowbot-discord-v2', 1)
+            s = Discord.client.setStreaming(this.messages[index].message, this.messages[index].url || 'https://github.com/nicholastay/meowbot-discord-v2', 1).catch(Logging.log)
         else
             s = Discord.client.setStatus(this.messages[index].status, this.messages[index].message).catch(Logging.log)
 
