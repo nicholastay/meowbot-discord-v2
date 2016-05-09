@@ -5,7 +5,8 @@ import Tools from '../Core/Tools'
 
 class Status {
     constructor() {
-        if (!Config.status || !Config.status.messages) return Logging.mlog('StatusH', 'No status configuration detected, handler disabled.')
+        if (!Config.status || !Config.status.messages)
+            return Logging.mlog('StatusH', 'No status configuration detected, handler disabled.')
 
         // Standardize messages
         this.messages = []
@@ -72,7 +73,12 @@ class Status {
                 this.counter = 0
         }
 
-        let s = Discord.client.setStatus(this.messages[index].status, this.messages[index].message).catch(Logging.log)
+        let s
+        if (this.messages[index].status === 'streaming')
+            s = Discord.client.setStreaming(this.messages[index].message, this.messages[index].url || 'https://github.com/nicholastay/meowbot-discord-v2', 1)
+        else
+            s = Discord.client.setStatus(this.messages[index].status, this.messages[index].message).catch(Logging.log)
+
         if (Config.status.printOnChange)
             s.then(() => Logging.mlog('StatusH', `Status changed to: ${this.messages[index].message} [${this.messages[index].status}].`))
     }

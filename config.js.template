@@ -13,7 +13,7 @@ const config = {
         apiKey: ''
     },
     status: { // status message updates. remove key to disable module
-        messages: ['Mario Kart Wii', 'Pokemon Red/Blue'], // status messages to rotate (or just do 1 to disable rotation and use one)
+        messages: ['Mario Kart Wii', 'Pokemon Red/Blue', { status: 'online', message: 'foobar2000' }, { status: 'streaming', message: 'some good stuff', url: 'http://twitch.tv/n2468txd' }], // status messages to rotate (or just do 1 to disable rotation and use one)
         random: true, // if rotating, randomize order? (default = false)
         printOnChange: true, // print changes to console (default = false)
         interval: 5 * 60 * 1000 // if rotating, interval to rotate at (in ms)? (default = 10mins)
