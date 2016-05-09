@@ -99,6 +99,20 @@ Roles: Aware of ${server.roles.length} roles.
 \`\`\``
                 }
             },
+            'avatar': {
+                description: 'Gives the avatar of a user on a server. Defaults to the person who issued the command.',
+                blockPM: true,
+                handler: (params, author, channel, server) => {
+                    let user = author
+                    if (params[0]) {
+                        user = Tools.resolveMention(params[0], channel)
+                        if (!user)
+                            return 'Invalid user, please mention them properly.'
+                    }
+
+                    return `${(user.id === author.id) ? 'Your' : `\`${user.name}\`'s`} avatar: \`${user.avatarURL}\``
+                }
+            },
             'userinfo': {
                 description: 'Returns information about a user on the server it was issued on. Defaults to the person who wrote the message.',
                 blockPM: true,
