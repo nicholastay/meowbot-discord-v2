@@ -1,11 +1,39 @@
+import simpleGit from 'simple-git'
+
 import Discord from '../Core/Discord'
 import Config from '../Core/Config'
 import Database from '../Core/Database'
 import Tools from '../Core/Tools'
 
+const git = simpleGit(process.cwd())
+
 class Management {
     get commands() {
         return {
+            'updates': {
+                description: 'Pulls the last 5 commit messages from git history to show updates to MeowBot.',
+                handler: (params, author) => {
+                    let amount = 5
+                    if (Number(params[0]) && Config.admins.indexOf(author.id) > -1)
+                        amount = Number(params[0])
+
+                    return new Promise((resolve, reject) => {
+                        git.log([`-${amount}`], (err, resp) => { // oh i just love callbacks
+                            if (err)
+                                reject(err)
+
+                            let commits = resp.all
+                            resolve(`The last ${amount} updates to MeowBot were:
+\`\`\`
+${commits.map(c => {
+    return `> ${c.date.slice(0, -6)} <#${c.hash.substr(0, 7)}> - ${c.message} - [${c.author_name}]`
+}).join('\n')}
+\`\`\`
+`)
+                        })
+                    })
+                }
+            },
             'setcolor': {
                 description: 'Sets the color of a role to a hex color. (Usage: setcolor [hex code] [role name])',
                 permissionLevel: 1,

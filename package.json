@@ -27,6 +27,7 @@
     "node-opus": "^0.1.12",
     "nodesu": "^0.3.0",
     "seedrandom": "^2.4.2",
+    "simple-git": "^1.32.1",
     "thenify": "^3.2.0",
     "ytdl-core": "^0.7.13"
   },

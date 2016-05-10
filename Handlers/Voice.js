@@ -112,7 +112,7 @@ class VoiceConnection {
                                  delete(this.parent.connections[this.textChannel.server.id])
                                  return Discord.sendMessage(this.textChannel, 'Left the voice channel.')
                              })
-                             .catch(e => { return Discord.sendMessage(this.textChannel(`There was an error leaving voice... *${e}*`) })
+                             .catch(e => { return Discord.sendMessage(this.textChannel, `There was an error leaving voice... *${e}*`) })
     }
 }
 
