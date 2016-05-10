@@ -12,13 +12,34 @@ ytdl.getInfoAsync = thenify(ytdl.getInfo) // promise wrapper
 
 class VoiceConnection {
     // Internal bot class for managing each connection
-    constructor(connection, textChannel) {
+    constructor(parent, connection, textChannel) {
+        this.parent = parent
         this.connection = connection
         this.textChannel = textChannel
         this._nowPlaying = null
         this._intent = null
         this.queue = []
         this.volume = 0.15
+
+        this._autoDisconnect = setInterval(() => this.leave(true), 10 * 60 * 1000) // interval for auto d/c
+        this.parent.intervals.push(this._autoDisconnect)
+    }
+
+    get autoDisconnect() {
+        return this._autoDisconnect
+    }
+
+    set autoDisconnect(interval) {
+        // ensure to clear the previous auto d/c from the main master
+        let i = this.parent.intervals.indexOf(this._autoDisconnect)
+        if (i > -1)
+            this.parent.intervals.splice(i, 1)
+        this._autoDisconnect = null
+
+        if (interval) { // truthy = interval
+            this.parent.intervals.push(interval) // must be kept track
+            this._autoDisconnect = interval
+        }
     }
 
     get intent() {
@@ -65,8 +86,10 @@ class VoiceConnection {
             return
 
         let nowPlay = this.queue.shift()
-        if (!nowPlay)
-            return Discord.sendMessage(this.textChannel, 'There are no more items in the queue, playback has now stopped.')
+        if (!nowPlay) {
+            Discord.sendMessage(this.textChannel, 'There are no more items in the queue, playback has now stopped.')
+            this.autoDisconnect = setInterval(() => this.leave(true), 10 * 60 * 1000) // 10 mins auto d/c
+        }
 
         if (nowPlay.file)
             this.intent = await this.connection.playFile(nowPlay.file, { volume: this.volume })
@@ -74,6 +97,22 @@ class VoiceConnection {
             this.intent = await this.connection.playRawStream(nowPlay.stream, { volume: this.volume })
 
         this.nowPlaying = nowPlay
+        if (this.autoDisconnect) {
+            clearInterval(this.autoDisconnect)
+            this.autoDisconnect = null // playing
+        }
+    }
+
+    leave(auto) { // kill self
+        if (auto)
+            Discord.sendMessage(this.textChannel, 'It has been 10mins since I have been used, leaving voice channel...')
+
+        return Discord.client.leaveVoiceChannel(this.connection)
+                             .then(() => {
+                                 delete(this.parent.connections[this.textChannel.server.id])
+                                 return Discord.sendMessage(this.textChannel, 'Left the voice channel.')
+                             })
+                             .catch(e => { return Discord.sendMessage(this.textChannel(`There was an error leaving voice... *${e}*`) })
     }
 }
 
@@ -92,6 +131,8 @@ class Voice {
                 this.connections = {}
             }
         }
+
+        this.intervals = [] // for auto d/c - in case a reload these must be cleared properly
     }
 
     get commands() {
@@ -105,13 +146,8 @@ class Voice {
                 handler: async (params, author, channel, server) => {
                     // leaving mechanism
                     if (!params[0] && this.connections[server.id]) {
-                        return Discord.client
-                                      .leaveVoiceChannel(this.connections[server.id].connection)
-                                      .then(() => {
-                                          delete(this.connections[server.id])
-                                          return 'Left the voice channel.'
-                                      })
-                                      .catch(e => { return `There was an error leaving voice... *${e}*` })
+                        this.connections[server.id].leave()
+                        return
                     }
 
                     if (this.connections[server.id] && this.connections[server.id].textChannel.id === channel.id)
@@ -138,7 +174,7 @@ class Voice {
                     return Discord.client
                                   .joinVoiceChannel(voiceChan)
                                   .then(connection => {
-                                      this.connections[server.id] = new VoiceConnection(connection, channel)
+                                      this.connections[server.id] = new VoiceConnection(this, connection, channel)
                                       return `Joined the voice channel '${voiceChan.name}' successfully! All notification updates will be sent to this channel, and any commands you wish to use to play music, etc, should be done in this channel. The volume is also set to the default of 15%.`
                                   })
                                   .catch(e => { return `There was an error joining voice... *${e}*` })
