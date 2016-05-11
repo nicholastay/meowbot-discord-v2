@@ -21,24 +21,26 @@ class VoiceConnection {
         this.queue = []
         this.volume = 0.15
 
-        this._autoDisconnect = setInterval(() => this.leave(true), 10 * 60 * 1000) // interval for auto d/c
-        this.parent.intervals.push(this._autoDisconnect)
+        this._autoDisconnect = setTimeout(() => this.leave(true), 10 * 60 * 1000) // timeout for auto d/c
+        this.parent.timeouts.push(this._autoDisconnect)
     }
 
     get autoDisconnect() {
         return this._autoDisconnect
     }
 
-    set autoDisconnect(interval) {
+    set autoDisconnect(timeout) {
         // ensure to clear the previous auto d/c from the main master
-        let i = this.parent.intervals.indexOf(this._autoDisconnect)
-        if (i > -1)
-            this.parent.intervals.splice(i, 1)
+        let i = this.parent.timeouts.indexOf(this._autoDisconnect)
+        if (i > -1) {
+            clearTimeout(this.parent.timeouts[i])
+            this.parent.timeouts.splice(i, 1)
+        }
         this._autoDisconnect = null
 
-        if (interval) { // truthy = interval
-            this.parent.intervals.push(interval) // must be kept track
-            this._autoDisconnect = interval
+        if (timeout) { // truthy = timeout
+            this.parent.timeouts.push(timeout) // must be kept track
+            this._autoDisconnect = timeout
         }
     }
 
@@ -88,7 +90,7 @@ class VoiceConnection {
         let nowPlay = this.queue.shift()
         if (!nowPlay) {
             Discord.sendMessage(this.textChannel, 'There are no more items in the queue, playback has now stopped.')
-            this.autoDisconnect = setInterval(() => this.leave(true), 10 * 60 * 1000) // 10 mins auto d/c
+            this.autoDisconnect = setTimeout(() => this.leave(true), 10 * 60 * 1000) // 10 mins auto d/c
         }
 
         if (nowPlay.file)
@@ -97,10 +99,8 @@ class VoiceConnection {
             this.intent = await this.connection.playRawStream(nowPlay.stream, { volume: this.volume })
 
         this.nowPlaying = nowPlay
-        if (this.autoDisconnect) {
-            clearInterval(this.autoDisconnect)
-            this.autoDisconnect = null // playing
-        }
+        if (this.autoDisconnect)
+            this.autoDisconnect = null // playing (setter clears timeout)
     }
 
     leave(auto) { // kill self
@@ -109,6 +109,7 @@ class VoiceConnection {
 
         return Discord.client.leaveVoiceChannel(this.connection)
                              .then(() => {
+                                 this.autoDisconnect = null // make sure setter clears this
                                  delete(this.parent.connections[this.textChannel.server.id])
                                  return Discord.sendMessage(this.textChannel, 'Left the voice channel.')
                              })
@@ -132,7 +133,7 @@ class Voice {
             }
         }
 
-        this.intervals = [] // for auto d/c - in case a reload these must be cleared properly
+        this.timeouts = [] // for auto d/c - in case a reload these must be cleared properly
     }
 
     get commands() {

@@ -13,6 +13,7 @@ class Handlers {
         this.handlers = {}
         this.commands = {}
         this.intervals = {}
+        this.timeouts = {}
         this.events = {}
 
         this._REPLCommands = {
@@ -213,6 +214,14 @@ class Handlers {
                 Logging.mlog('Handlers', `Loaded ${h.intervals.length} interval(s) from '${handlerName}'.`)
             }
 
+            if (h.timeouts) {
+                if (!Array.isArray(h.timeouts))
+                    return
+
+                this.timeouts[handlerName] = h.timeouts
+                Logging.mlog('Handlers', `Loaded ${h.timeouts.length} timeout(s) from '${handlerName}'.`)
+            }
+
 
             if (h.events) {
                 this.events[handlerName] = h.events
@@ -248,6 +257,13 @@ class Handlers {
                     clearInterval(i)
 
                 delete(this.intervals[handlerName])
+            }
+
+            if (this.timeouts[handlerName]) {
+                for (let i of this.timeouts[handlerName])
+                    clearTimeout(i)
+
+                delete(this.timeouts[handlerName])
             }
 
             if (this.events[handlerName]) {
