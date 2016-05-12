@@ -143,6 +143,7 @@ class Commands {
                 handler: async (message, author, channel, server) => {
                     let i       = message.indexOf(' ')
                       , command = i < 0 ? message : message.substr(0, i)
+                      , input   = i < 0 ? '' : message.substr(i+1, i.length)
 
                     if (Handlers.commands[command])
                         return // yeah lets just ignore this
@@ -155,7 +156,16 @@ class Commands {
                     if (!dbResp)
                         return
 
-                    Discord.sendMessage(channel, dbResp.response)
+                    let response = dbResp.response
+                    // if input dont allow blank
+                    if ((response.indexOf('${input}') > -1) && !input)
+                        return
+                    // replaces for params etc
+                    response = response
+                                    .replace(/\${username}/g, author.name)
+                                    .replace(/\${input}/g, input)
+
+                    Discord.sendMessage(channel, response)
                 }
             }
         ]
