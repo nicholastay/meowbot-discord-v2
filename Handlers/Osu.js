@@ -5,7 +5,8 @@ import Logging from '../Core/Logging'
 
 class Osu {
     constructor() {
-        if (!Config.osu || !Config.osu.apiKey) return Logging.mlog('OsuH', 'osu! handler has been disabled as it is not configured/configured properly.')
+        if (!Config.osu || !Config.osu.apiKey) 
+            return Logging.mlog('OsuH', 'osu! handler has been disabled as it is not configured/configured properly.')
 
         this.api = new nodesu.api({
             apiKey: Config.osu.apiKey
@@ -13,7 +14,8 @@ class Osu {
     }
 
     get commands() {
-        if (!this.api) return null
+        if (!this.api)
+            return null
 
         return {
             'osu': {
