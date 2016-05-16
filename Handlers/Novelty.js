@@ -64,7 +64,7 @@ class Novelty {
                         if (!cat.file)
                             throw new Error('no cat file/api broke')
                         
-                        return `meow! ${cat.file}`
+                        return `meow! ${encodeURI(cat.file)}`
                     }
                     // otherwise silently drop command
                 }
