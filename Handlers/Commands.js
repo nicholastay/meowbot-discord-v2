@@ -157,12 +157,14 @@ class Commands {
                         return
 
                     let response = dbResp.response
+                      , name     = server.detailsOf(author).nick || author.name
                     // if input dont allow blank
                     if ((response.indexOf('${input}') > -1) && !input)
                         return
                     // replaces for params etc
                     response = response
-                                    .replace(/\${username}/g, author.name)
+                                    .replace(/\${username}/g, name)
+                                    .replace(/\${mention}/g, author.mention())
                                     .replace(/\${input}/g, input)
 
                     Discord.sendMessage(channel, response)
