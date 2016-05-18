@@ -68,6 +68,24 @@ class Novelty {
                     }
                     // otherwise silently drop command
                 }
+            },
+            'roll': {
+                description: 'Roll the dice. (by default 1-10, usage [min (optional)] [max])',
+                handler: (params) => {
+                    let min = 1
+                      , max = 10
+
+                    if (Number(params[0])) {
+                        if (Number(params[1])) {
+                            min = Number(params[0])
+                            max = Number(params[1])
+                        } else {
+                            max = Number(params[0])
+                        }
+                    }
+
+                    return `I roll the dice and the number is..... ${Tools.getRandomInt(min, max+1)}!`
+                }
             }
         }
     }
