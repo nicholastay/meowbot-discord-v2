@@ -95,6 +95,8 @@ class Commands {
                     }
 
                     let existing = await Database.Commands.findOne({ command, server: serverId })
+                    if (!existing)
+                        return 'This command does not exist... create it first with the \'createcommand\' command.'
 
                     return Database.Commands.update(existing, { $set: { response: params.join(' ') } })
                                             .then(() => {
