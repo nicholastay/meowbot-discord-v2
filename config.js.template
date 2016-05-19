@@ -25,6 +25,12 @@ const config = {
         logSelf: true, // should the bot log itself to db - default = false
         doNotLogUsers: ['62125999352975360'], // users you do not wish to log to db (by id)
         doNotLogChannels: [] // channels you do not wish to log to db (by id)
+    },
+    novelty: {
+        microsoft: { // for translate
+            clientId: '',
+            clientSecret: ''
+        }
     }
 }
 

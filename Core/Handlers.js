@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import util from 'util'
 
 import Config from './Config'
 import Database from './Database'
@@ -148,7 +149,7 @@ class Handlers {
             if (h instanceof Promise) {
                 return h.then(p => { if (p) Discord[r ? 'reply' : 'sendMessage'](message, p) })
                         .catch(e => {
-                            Logging.log(e.stack)
+                            Logging.log(util.inspect(e.stack || e))
                             Discord.sendMessage(message, `An error occurred... - \`${e}\``)
                         })
             }

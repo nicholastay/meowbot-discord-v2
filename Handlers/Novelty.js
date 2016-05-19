@@ -1,7 +1,10 @@
 import seedrandom from 'seedrandom'
 import axios from 'axios'
 import { RateLimiter } from 'limiter'
+import MsTranslator from 'mstranslator'
+import thenify from 'thenify'
 
+import Config from '../Core/Config'
 import Tools from '../Core/Tools'
 
 const BALL_RESPONSES = [
@@ -30,6 +33,16 @@ const BALL_RESPONSES = [
 class Novelty {
     constructor() {
         this.meowLimiter = new RateLimiter(25, 'minute')
+
+        if (Config.novelty && Config.novelty.microsoft) {
+            this.transLimiter = new RateLimiter(15, 'minute')
+            this.transApi = new MsTranslator({
+                client_id: Config.novelty.microsoft.clientId,
+                client_secret: Config.novelty.microsoft.clientSecret
+            }, true)
+
+            this.transApi.translateAsync = thenify(this.transApi.translate)
+        }
     }
 
     get commands() {
@@ -85,6 +98,38 @@ class Novelty {
                     }
 
                     return `I roll the dice and the number is..... ${Tools.getRandomInt(min, max+1)}!`
+                }
+            },
+            'translate': {
+                description: 'Translate random phrases!',
+                hidden: !!this.transApi, // hide aka disable if not set up
+                requireParams: true,
+                handler: async (params) => {
+                    if (params[0].toLowerCase() === 'languages')
+                        return 'You can find a list of languages here - https://msdn.microsoft.com/en-us/library/hh456380.aspx'
+
+                    if (!params[1])
+                        return
+
+                    if (this.transLimiter.tryRemoveTokens(1)) {
+                        let toL   = params.shift()
+                          , fromL = 'en'
+
+                        if (toL.indexOf(':') > -1) {
+                            let spl = toL.split(':')
+                            toL = spl[1]
+                            fromL = spl[0]
+                        }
+
+                        let resp = await this.transApi.translateAsync({
+                            text: params.join(' '),
+                            from: fromL,
+                            to: toL
+                        })
+
+                        return `${resp} (\`${fromL}:${toL}\`)`
+                    }
+                    // silently drop
                 }
             }
         }
