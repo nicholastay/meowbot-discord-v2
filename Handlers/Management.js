@@ -111,32 +111,18 @@ ${commits.map(c => {
                     if (!cleanCount)
                         return 'You need to give me a number of my own messages to clean!'
 
-                    let missingPerms = Tools.checkOwnPermissions(server, ['readMessageHistory'])
-                    // if (missingPerms) return fancyPrintPerms(missingPerms)
-
                     let messages = await Discord.client.getChannelLogs(channel, 100)
-                      , myMsgs   = messages.filter(m => m.author.id === Discord.client.user.id)
+                      , myMsgs   = messages.filter(m => m.author.id === Discord.client.user.id).splice(0, cleanCount)
 
                     if (myMsgs.length < 1)
                         return 'There were no messages by me to clean up in the last 100 messages.'
 
-                    let promises = []
-                      , i = 0
-                    for (let m of myMsgs) {
-                        promises.push(Tools.reflect(Discord.client.deleteMessage(m)))
-                        i++
+                    await Discord.client.deleteMessages(myMsgs)
 
-                        if (i >= cleanCount)
-                            break
-                    }
+                    if (params[1] === 'silent')
+                        return null
 
-                    return Promise.all(promises)
-                                  .then(res => {
-                                      if (params[1] === 'silent')
-                                        return null
-
-                                      return `Removed ${res.filter(x => x.status === 'resolved').length} message(s) from the last 100 that I have sent.${missingPerms ? ' *(This command works better if I have the \`Read Message History\` permission in a role called \'Meow\'.)*' : ''}`
-                                  })
+                    return `Removed ${myMsgs.length} message(s) from the last 100 that I have sent.`
                 }
             },
             'prune': {
@@ -151,33 +137,23 @@ ${commits.map(c => {
                     if (!pruneCount)
                         return 'You need to give me a number of messages to prune!'
 
-                    let missingPerms = Tools.checkOwnPermissions(server, ['readMessageHistory', 'manageMessages'])
-                    if (missingPerms)
-                        return fancyPrintPerms(missingPerms)
-
                     if (pruneCount > 100)
                         return 'The maximum I can prune at a time is 100 messages. Please lower the number and try again.'
 
-                    let silent = params[1] === 'silent' // silent, remove command & PM user after prune
+                    let silent   = params[1] === 'silent' // silent, remove command & PM user after prune
                       , messages = await Discord.client.getChannelLogs(channel, pruneCount+1) // +1 as including the command invoked
-                      , promises = []
 
                     if (!silent)
                         messages.shift() // disregard command normally
 
-                    for (let m of messages)
-                        promises.push(Tools.reflect(Discord.client.deleteMessage(m)))
+                    await Discord.client.deleteMessages(messages)
 
-                    return Promise.all(promises)
-                                  .then(res => {
-                                      let reply = `Pruned the last ${res.filter(x => x.status === 'resolved').length} messages(s)`
+                    let reply = `Pruned the last ${messages.length} messages(s).`
+                    if (!silent)
+                        return `${reply}.`
 
-                                      if (!silent)
-                                          return `${reply}.`
-
-                                      Discord.sendMessage(author, `${reply} silently. [${server.name} :: #${channel.name}]`)
-                                      return null
-                                  })
+                    Discord.sendMessage(author, `${reply} silently. [${server.name} :: #${channel.name}]`)
+                    return null
                 }
             },
             'prefix': {
