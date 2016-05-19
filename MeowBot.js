@@ -1,3 +1,5 @@
+import 'promise.prototype.finally' // Promise finally polyfill
+
 import chalk from 'chalk'
 
 import './Core/Config'

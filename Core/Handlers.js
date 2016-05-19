@@ -147,11 +147,14 @@ class Handlers {
               , r = this.commands[command].reply
 
             if (h instanceof Promise) {
+                // async function start typing in case it takes a while
+                Discord.client.startTyping(message.channel)
                 return h.then(p => { if (p) Discord[r ? 'reply' : 'sendMessage'](message, p) })
                         .catch(e => {
                             Logging.log(util.inspect(e.stack || e))
                             Discord.sendMessage(message, `An error occurred... - \`${e}\``)
                         })
+                        .finally(() => Discord.client.stopTyping(message.channel))
             }
             if (h instanceof String || typeof h === 'string') {
                 return Discord[r ? 'reply' : 'sendMessage'](message, h)
