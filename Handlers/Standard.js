@@ -19,7 +19,8 @@ class Standard {
                 description: 'Returns the uptime of the bot.',
                 handler: () => {
                     let uptime = humanizeDuration(new Date() - Discord.aliveSince, { round: true })
-                    return `MeowBot has been up, online and serving you for: ${uptime}.`
+                      , up2    = humanizeDuration(new Date() - Discord.scriptStart, { round: true })
+                    return `I have been up, online and healthy for: \`${uptime}\`.\nI have been serving you for: \`${up2}\`.\n(Discord or my internet connection can be bad sometimes and not allow me to connect D:)`
                 }
             },
             'help': {

@@ -8,6 +8,7 @@ class Discord {
     constructor() {
         this.client = null
         this.aliveSince = null
+        this.scriptStart = new Date()
     }
 
     connect() {
