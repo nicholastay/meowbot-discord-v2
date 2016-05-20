@@ -18,6 +18,19 @@ class Status {
             }
 
             // Object
+            if (!m.message) {
+                Logging.mlog('StatusH', 'invalid status message config detected, ensure the object has .message with a message')
+                continue
+            }
+            if (m.status === 'streaming') {
+                if (!m.url)
+                    m.url = 'https://twitch.tv/n2468txd' // placeholder auto
+                else if (m.url.indexOf('twitch.tv') < 0)
+                    Logging.mlog('StatusH', `warn: status streaming type status '${m.message}' does not seem to have a twitch.tv url. May not display/set as intended.`)
+            } else if (!m.status) {
+                m.status = 'online'
+            }
+
             this.messages.push(m)
         }
 
@@ -26,7 +39,7 @@ class Status {
             this.events = { // Update on first connect & disconnects
                 'discord.ready': () => {
                     if (this.messages[0].status === 'streaming')
-                        Discord.client.setStreaming(this.messages[0].message, this.messages[0].url || 'https://github.com/nicholastay/meowbot-discord-v2', 1).catch(Logging.log)
+                        Discord.client.setStreaming(this.messages[0].message, this.messages[0].url, 1).catch(Logging.log)
                     else
                         Discord.client.setStatus(this.messages[0].status, this.messages[0].message).catch(Logging.log)
                 }
@@ -78,7 +91,7 @@ class Status {
 
         let s
         if (this.messages[index].status === 'streaming')
-            s = Discord.client.setStreaming(this.messages[index].message, this.messages[index].url || 'https://github.com/nicholastay/meowbot-discord-v2', 1).catch(Logging.log)
+            s = Discord.client.setStreaming(this.messages[index].message, this.messages[index].url, 1).catch(Logging.log)
         else
             s = Discord.client.setStatus(this.messages[index].status, this.messages[index].message).catch(Logging.log)
 
