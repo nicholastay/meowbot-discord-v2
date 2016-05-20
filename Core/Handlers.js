@@ -154,7 +154,7 @@ class Handlers {
                             Logging.log(util.inspect(e.stack || e))
                             Discord.sendMessage(message, `An error occurred... - \`${e}\``)
                         })
-                        .finally(() => Discord.client.stopTyping(message.channel))
+                        .finally(() => setTimeout(() => Discord.client.stopTyping(message.channel), 150))
             }
             if (h instanceof String || typeof h === 'string') {
                 return Discord[r ? 'reply' : 'sendMessage'](message, h)
