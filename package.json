@@ -22,7 +22,7 @@
     "discord.js": "hydrabolt/discord.js#e6572ca",
     "fast-strftime": "^1.1.1",
     "humanize-duration": "^3.7.0",
-    "jp-conversion": "0.0.7",
+    "kuroshiro": "^0.1.1",
     "limiter": "^1.1.0",
     "mstranslator": "^2.0.8",
     "nedb-promise": "^2.0.0",

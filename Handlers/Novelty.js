@@ -3,7 +3,7 @@ import axios from 'axios'
 import { RateLimiter } from 'limiter'
 import MsTranslator from 'mstranslator'
 import thenify from 'thenify'
-import jpConverter from 'jp-conversion'
+import kuroshiro from 'kuroshiro'
 
 import Config from '../Core/Config'
 import Tools from '../Core/Tools'
@@ -32,6 +32,8 @@ const BALL_RESPONSES = [
 ]
 
 const JP_CHECK = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/ // https://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
+
+kuroshiro.init(() => {}) // idk if you actually need this
 
 class Novelty {
     constructor() {
@@ -145,7 +147,7 @@ class Novelty {
                     if (!JP_CHECK.test(input))
                         return 'You need to enter at least some Japanese!'
 
-                    let conversion = jpConverter.romanise(input)
+                    let conversion = kuroshiro.convert(input, { to: 'romaji', mode: 'spaced' })
                     if (!conversion)
                         return 'Invalid Japanese input!'
 
