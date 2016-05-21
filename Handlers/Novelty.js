@@ -31,6 +31,8 @@ const BALL_RESPONSES = [
     'very doubtful'
 ]
 
+const JP_CHECK = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/ // https://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
+
 class Novelty {
     constructor() {
         this.meowLimiter = new RateLimiter(25, 'minute')
@@ -138,9 +140,14 @@ class Novelty {
                 requireParams: true,
                 handler: (params, author) => {
                     let input      = params.join(' ')
-                      , conversion = jpConverter.romanise(input)
+
+                    if (!JP_CHECK.test(input))
+                        return `${author.mention()}, you need to enter at least some Japanese!`
+
+                    let conversion = jpConverter.romanise(input)
                     if (!conversion)
-                        return `${author.mention()}, you need to enter valid (and only) Japanese!`
+                        return `${author.mention()}, invalid Japanese input!`
+
                     return `${conversion} [${input}]`
                 }
             }
