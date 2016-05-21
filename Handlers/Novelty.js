@@ -3,6 +3,7 @@ import axios from 'axios'
 import { RateLimiter } from 'limiter'
 import MsTranslator from 'mstranslator'
 import thenify from 'thenify'
+import jpConverter from 'jp-conversion'
 
 import Config from '../Core/Config'
 import Tools from '../Core/Tools'
@@ -130,6 +131,17 @@ class Novelty {
                         return `${resp} (\`${fromL}:${toL}\`)`
                     }
                     // silently drop
+                }
+            },
+            'unweeb': {
+                description: 'Learn to read that weebspeak! ...',
+                requireParams: true,
+                handler: (params, author) => {
+                    let input      = params.join(' ')
+                      , conversion = jpConverter.romanise(input)
+                    if (!conversion)
+                        return `${author.mention()}, you need to enter valid (and only) Japanese!`
+                    return `${conversion} [${input}]`
                 }
             }
         }
