@@ -47,7 +47,8 @@ class Logger {
         if ((author.id === Discord.client.user.id && !Config.logging.logSelf) || // do not log own msgs to db if config is false (default)
             (Config.logging.doNotLogChannels && Config.logging.doNotLogChannels.indexOf(channel.id) > -1) || // channel ignored
             (Config.logging.doNotLogUsers && Config.logging.doNotLogUsers.indexOf(author.id) > -1) || // user ignored
-            (Config.logging.logChangesOnly && !(data.meowDeleted || data.meowEdited))) // config option for changes only
+            (Config.logging.logChangesOnly && !(data.meowDeleted || data.meowEdited)) // config option for changes only
+            (Config.logging.doNotLogBots && author.bot)) // oauth compliance bots option
             return
 
 

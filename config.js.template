@@ -24,7 +24,8 @@ const config = {
         databaseTTL: 5 * 24 * 60 * 60, // defaults to 7 days - this is 5 days (in secs) - it is recommended NOT to change this after first run, unless you know how to delete existing indexes and allow this new one to create
         logSelf: true, // should the bot log itself to db - default = false
         doNotLogUsers: ['62125999352975360'], // users you do not wish to log to db (by id)
-        doNotLogChannels: [] // channels you do not wish to log to db (by id)
+        doNotLogChannels: [], // channels you do not wish to log to db (by id)
+        doNotLogBots: true // default false - for oauth compliance bots
     },
     novelty: {
         microsoft: { // for translate
