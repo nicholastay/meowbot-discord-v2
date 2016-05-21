@@ -138,17 +138,18 @@ class Novelty {
             'unweeb': {
                 description: 'Learn to read that weebspeak! ...',
                 requireParams: true,
+                reply: true,
                 handler: (params, author) => {
-                    let input      = params.join(' ')
+                    let input = params.join(' ')
 
                     if (!JP_CHECK.test(input))
-                        return `${author.mention()}, you need to enter at least some Japanese!`
+                        return 'You need to enter at least some Japanese!'
 
                     let conversion = jpConverter.romanise(input)
                     if (!conversion)
-                        return `${author.mention()}, invalid Japanese input!`
+                        return 'Invalid Japanese input!'
 
-                    return `${conversion} [${input}]`
+                    return `\n\`\`\`\n${conversion}\n\`\`\``
                 }
             }
         }
