@@ -29,6 +29,9 @@ const Tools = {
         // https://stackoverflow.com/questions/4149276/javascript-camelcase-to-regular-form
         return str.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => { return str.toUpperCase() })
     },
+    reverse: (str) => {
+        return str.split('').reverse().join('')
+    },
     reflect: (promise) => {
         // Promise reflecting
         // https://stackoverflow.com/questions/31424561/wait-until-all-es6-promises-complete-even-rejected-promises

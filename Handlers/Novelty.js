@@ -87,6 +87,18 @@ class Novelty {
                     // otherwise silently drop command
                 }
             },
+            'reverse': {
+                description: 'I wonder what this command does pfft',
+                handler: (params) => {
+                    return Tools.reverse(params.join(' '))
+                }
+            },
+            'sideways': {
+                description: 'sideways :^)',
+                handler: (params) => {
+                    return params.join(' ').split('').join('\n')
+                }
+            },
             'roll': {
                 description: 'Roll the dice. (by default 1-10, usage [min (optional)] [max])',
                 handler: (params) => {
