@@ -99,6 +99,20 @@ class Novelty {
                     return params.join(' ').split('').join('\n')
                 }
             },
+            'square': {
+                description: 'square.',
+                handler: (params) => {
+                    let text = params.join(' ').split('')
+                      , resp = '```\n'
+                    for (let i = 0; i < text.length; i++) {
+                        resp += text.join(' ')
+                        text.push(text.shift())
+                        resp += '\n'
+                    }
+                    resp += '```'
+                    return resp
+                }
+            },
             'roll': {
                 description: 'Roll the dice. (by default 1-10, usage [min (optional)] [max])',
                 handler: (params) => {
