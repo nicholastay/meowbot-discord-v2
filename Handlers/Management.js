@@ -3,6 +3,7 @@ import simpleGit from 'simple-git'
 import Discord from '../Core/Discord'
 import Config from '../Core/Config'
 import Database from '../Core/Database'
+import Logging from '../Core/Logging'
 import Tools from '../Core/Tools'
 
 const git = simpleGit(process.cwd())
@@ -119,32 +120,28 @@ ${commits.map(c => {
 
 
                     return new Promise((resolve, reject) => {
-                        let removed = null
+                        let whenDone = (cleanedAmt) => {
+                            if (!cleanedAmt)
+                                return
+                            if (params[1] === 'silent')
+                                return resolve(null)
+                            resolve(`Removed ${cleanedAmt} message(s) from the last 100 that I have sent.`)
+                        }
+
                         Discord.client.deleteMessages(myMsgs)
-                            .then(() => removed = myMsgs.length)
-                            .catch(() => {
+                            .then(() => whenDone(myMsgs.length), e => {
+                                if (e.status !== 403)
+                                    return reject(e)
+
                                 Logging.mlog('ManagementH', `warn: '${server.name}' no manage messages, falling back to manual delete`)
                                 // no perms fallback
                                 let promises = []
-                                  , i = 0
-                                for (let m of myMsgs) {
-                                    promises.push(Tools.reflect(Discord.client.deleteMessage(m)))
-                                    i++
+                                for (let m of myMsgs)
+                                    promises.push(Tools.reflect(m.delete()))
 
-                                    if (i >= cleanCount)
-                                        break
-                                }
-
-                                return Promise.all(promises)
-                                              .then(res => removed = res.filter(x => x.status === 'resolved').length)
-                                              .catch(reject)
-                            })
-                            .finally(() => {
-                                if (!removed)
-                                    return
-                                if (params[0] === 'silent')
-                                    return resolve(null)
-                                resolve(`Removed ${removed} message(s) from the last 100 that I have sent.`)
+                                Promise.all(promises)
+                                       .then(res => whenDone(res.filter(x => x.status === 'resolved').length))
+                                       .catch(reject)
                             })
                     })
                 }
@@ -172,7 +169,7 @@ ${commits.map(c => {
 
                     await Discord.client.deleteMessages(messages)
 
-                    let reply = `Pruned the last ${messages.length} messages(s).`
+                    let reply = `Pruned the last ${messages.length} messages(s)`
                     if (!silent)
                         return `${reply}.`
 
