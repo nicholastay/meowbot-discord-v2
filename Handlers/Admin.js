@@ -27,6 +27,12 @@ class Admin {
                 requireParams: true,
                 requireParamsResponse: null,
                 handler: (params, author, channel, message) => {
+                    let silent = false
+                    if (params[params.length-1] === '-%s') {
+                        silent = true
+                        params.pop()
+                    }
+
                     let resp
 
                     try {
@@ -35,6 +41,9 @@ class Admin {
                     catch (e) {
                         resp = e
                     }
+
+                    if (silent)
+                        return
 
                     // shutup eslint because it just looks cleaner without the weird template string workarounds
                     return '```\n' + resp + '\n```' // eslint-disable-line prefer-template

@@ -117,12 +117,36 @@ ${commits.map(c => {
                     if (myMsgs.length < 1)
                         return 'There were no messages by me to clean up in the last 100 messages.'
 
-                    await Discord.client.deleteMessages(myMsgs)
 
-                    if (params[1] === 'silent')
-                        return null
+                    return new Promise((resolve, reject) => {
+                        let removed = null
+                        Discord.client.deleteMessages(myMsgs)
+                            .then(() => removed = myMsgs.length)
+                            .catch(() => {
+                                Logging.mlog('ManagementH', `warn: '${server.name}' no manage messages, falling back to manual delete`)
+                                // no perms fallback
+                                let promises = []
+                                  , i = 0
+                                for (let m of myMsgs) {
+                                    promises.push(Tools.reflect(Discord.client.deleteMessage(m)))
+                                    i++
 
-                    return `Removed ${myMsgs.length} message(s) from the last 100 that I have sent.`
+                                    if (i >= cleanCount)
+                                        break
+                                }
+
+                                return Promise.all(promises)
+                                              .then(res => removed = res.filter(x => x.status === 'resolved').length)
+                                              .catch(reject)
+                            })
+                            .finally(() => {
+                                if (!removed)
+                                    return
+                                if (params[0] === 'silent')
+                                    return resolve(null)
+                                resolve(`Removed ${removed} message(s) from the last 100 that I have sent.`)
+                            })
+                    })
                 }
             },
             'prune': {
