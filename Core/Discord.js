@@ -46,6 +46,13 @@ class Discord {
         this.login()
     }
 
+    sendMessage(data, message) {
+        if (message.length > 2000)
+            return this.client.sendMessage(data, 'You gotta calm down, I can\'t actually send that many words as once...')
+
+        return this.client.reply(data, message)
+    }
+
     reply(data, message) {
         let firstLetter
         
