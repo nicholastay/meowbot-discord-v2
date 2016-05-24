@@ -113,6 +113,22 @@ class Novelty {
                     return resp
                 }
             },
+            'hsquare': {
+                description: 'hollow square.',
+                handler: (params) => {
+                    let text = params.join(' ').split('')
+                      , resp = '```\n'
+                    resp += `${text.join(' ')}\n`
+
+                    for (let i = 1; i < text.length-1; i++) { // from second letter to second last
+                        resp += `${text[i]} ${' '.repeat(text.length)} ${text[text.length-1-i]}\n`
+                    }
+                    resp += `${text.reverse().join(' ')}\n`
+
+                    resp += '```'
+                    return resp
+                }
+            },
             'roll': {
                 description: 'Roll the dice. (by default 1-10, usage [min (optional)] [max])',
                 handler: (params) => {
