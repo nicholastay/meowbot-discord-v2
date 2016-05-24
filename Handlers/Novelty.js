@@ -121,7 +121,7 @@ class Novelty {
                     resp += `${text.join(' ')}\n`
 
                     for (let i = 1; i < text.length-1; i++) { // from second letter to second last
-                        resp += `${text[i]} ${' '.repeat(text.length)} ${text[text.length-1-i]}\n`
+                        resp += `${text[i]} ${' '.repeat(((text.length-2)*2)-1)} ${text[text.length-1-i]}\n`
                     }
                     resp += `${text.reverse().join(' ')}\n`
 
