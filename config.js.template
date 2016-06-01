@@ -32,6 +32,9 @@ const config = {
             clientId: '',
             clientSecret: ''
         }
+    },
+    voice: {
+        queueLimit: 69 // queue limit per server, defaults to 100 -- hard limit
     }
 }
 

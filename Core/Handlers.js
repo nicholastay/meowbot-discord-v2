@@ -117,7 +117,7 @@ class Handlers {
                 (this.commands[command].blockPM && message.private))
                 return // if in a general server chat and its a pm or other way round dont allow it based on command settings
 
-            if (this.commands[command].permissionLevel) {
+            if (this.commands[command].permissionLevel || this.commands[command].forcePermsLookup) {
                 // Basic permissions
                 // 0 = general nobody, 1 = server mod, 2 = server admin, 3 = bot admin
                 let perms = 0
@@ -130,10 +130,11 @@ class Handlers {
                         let userRoles = message.channel.server.rolesOfUser(message.author)
                         if (userRoles.find(r => r.name === 'MeowAdmins')) perms = 2
                         else if (userRoles.find(r => r.name === 'MeowMods')) perms = 1
+                        else perms = 0
                     }
                 }
 
-                if (this.commands[command].permissionLevel > perms) {
+                if ((this.commands[command].permissionLevel || 0) > perms) {
                     if (this.commands[command].hidden)
                         return // shutup on a hidden command
 
@@ -154,7 +155,7 @@ class Handlers {
                             Logging.log(util.inspect(e.stack || e))
                             Discord.sendMessage(message, `An error occurred... - \`${e}\``)
                         })
-                        .finally(() => setTimeout(() => Discord.client.stopTyping(message.channel), 150))
+                        .finally(() => setTimeout(() => Discord.client.stopTyping(message.channel), 450))
             }
             if (h instanceof String || typeof h === 'string') {
                 return Discord[r ? 'reply' : 'sendMessage'](message, h)

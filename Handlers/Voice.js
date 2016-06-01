@@ -3,6 +3,7 @@ import thenify from 'thenify'
 
 import DiscordStreamIntent from 'discord.js/lib/Voice/StreamIntent'
 
+import Config from '../Core/Config'
 import Discord from '../Core/Discord'
 import Logging from '../Core/Logging'
 import Database from '../Core/Database'
@@ -77,10 +78,19 @@ class VoiceConnection {
         this._nowPlaying = data
     }
 
-    addToQueue(data) {
+    async addToQueue(data, server, permissionLevel, customMsg) {
+        if (this.queue.length+1 >= this.parent.queueLimit)
+            return 'Cannot queue any more tracks as we have already hit the limit set by my admin, sorry!'
+
+        let serverLimit = ((await Database.Servers.findOne({ server: server.id })) || {}).voiceQueueLimit || 10
+        if (permissionLevel < 1 && this.queue.length+1 >= serverLimit)
+            return 'You have already reached your limit on this server to queue tracks, please calm down, eat a sandwich and try again later!'
+
         this.queue.push(data)
         if (!this.nowPlaying)
-            return this.playNext()
+            this.playNext()
+
+        return customMsg
     }
 
     async playNext() {
@@ -134,6 +144,9 @@ class Voice {
         }
 
         this.timeouts = [] // for auto d/c - in case a reload these must be cleared properly
+
+        if (Config.voice && Config.voice.queueLimit)
+            this.queueLimit = Config.voice.queueLimit
     }
 
     get commands() {
@@ -157,11 +170,9 @@ class Voice {
                     if (this.connections[server.id])
                         return `There is already an active voice connection for this server. There can only be one voice connection per server. For you information, I am currently in '${this.connections[server.id].connection.voiceChannel.name}' (bound to text channel ${this.connections[server.id].textChannel.mention()}).`
 
-
                     let allowedVoice = ((await Database.Servers.findOne({ server: server.id })) || {}).allowVoice
                     if (!allowedVoice)
                         return 'This server does not have the voice functionality enabled. This is due to the high bandwidth and resource usage used when streaming audio. You can ask Nexerq (or any other bot admins) to request for access to this feature.'
-
 
                     if (!params[0])
                         return 'You need to specify a voice channel for me to join!'
@@ -253,16 +264,16 @@ class Voice {
                         name,
                         type: 'LOCAL',
                         requester: author
-                    })
-                    return `**[ADMIN ACTION]** - Added a local file to queue: ${params.join(' ').split('/').pop()}`
+                    }, server, 3, `**[ADMIN ACTION]** - Added a local file to queue: ${params.join(' ').split('/').pop()}`)
                 }
             },
             'play': {
                 description: 'Queue a song for me to play in a voice channel. Text channel must be bound to a voice channel to work.',
                 blockPM: true,
                 reply: true,
+                forcePermsLookup: true,
                 requireParams: true,
-                handler: async (params, author, channel, server) => {
+                handler: async (params, author, channel, server, data) => {
                     if (!this.connections[server.id])
                         return
 
@@ -274,13 +285,12 @@ class Voice {
                     let urlmp3Lookup = /^https?:\/\/(.*)\/(.*?)\.mp3$/i.exec(lookup)
                     if (urlmp3Lookup) {
                         // url
-                        conn.addToQueue({
+                        return conn.addToQueue({
                             file: lookup, // pass url direct to ffmpeg
                             type: 'URL-MP3',
                             name: `${urlmp3Lookup[2]}.mp3`,
                             requester: author
-                        })
-                        return `Added the URL **'${lookup}'** to the queue.`
+                        }, server, data.meowPerms, `Added the URL **'${lookup}'** to the queue.`)
                     }
 
                     let youtubeLookup = /youtu((be\.com\/watch\?v=)|(\.be\/))([A-Za-z0-9-_]+)/i.exec(lookup)
@@ -295,14 +305,13 @@ class Voice {
                                                  Logging.mlog('VoiceH', `YTDL stream error - ${e}`)
                                                  // Discord.client.sendMessage(this.textChannel, 'There was a backend error during playback... please try again later.')
                                              })
-                            conn.addToQueue({
+                            return conn.addToQueue({
                                 stream, // 140 = opus audio
                                 type: 'YouTube',
                                 name: info.title && info.author ? `${info.title} (by ${info.author})` : `Video ID ${youtubeLookup[4]} [was unable to get metadata]`,
                                 length: info.length_seconds,
                                 requester: author
-                            })
-                            return `Added YouTube video **'${info.title}'** to the queue.`
+                            }, server, data.meowPerms, `Added YouTube video **'${info.title}'** to the queue.`)
                         }
                         catch (e) {
                             return 'Invalid YouTube link (in which case you are a jerk) or having problems connecting with the YouTube server...'
@@ -311,6 +320,42 @@ class Voice {
 
 
                     return `I do not know how to handle and play '${lookup}'. Please use a supported format.`
+                }
+            },
+            'voicequeuelimit': {
+                description: 'Sets the amount of tracks that users can queue at once. (Defaults to 10, you can set this to 0 to only let mods queue tracks.)',
+                permissionLevel: 1,
+                blockPM: true,
+                requireParams: true,
+                handler: async (params, author, channel, server) => {
+                    let serverSettings = await Database.Servers.findOne({ server: server.id })
+                    if (!serverSettings || !serverSettings.allowVoice)
+                        return
+
+                    let limit = Number(params[0])
+                    if (!limit || limit < 1)
+                        return 'The limit must be a valid number and be 0 or higher.'
+
+                    await Database.Servers.update({ server: server.id }, { $set: { voiceQueueLimit: limit } }, { upsert: true })
+                    return `Set the voice queue limit to ${limit} tracks.`
+                }
+            },
+            'removefromqueue': {
+                description: 'Removes a track from queue by index number.',
+                permissionLevel: 1,
+                blockPM: true,
+                requireParams: true,
+                handler: (params, author, channel, server) => {
+                    if (!this.connections[server.id])
+                        return
+
+                    let index       = Number(params[0])
+                      , serverQueue = this.connections[server.id].queue
+                    if (!index || index < 1 || serverQueue.length < 1 || index-1 > serverQueue.length)
+                        return 'Invalid index to remove.'
+
+                    let removed = serverQueue.splice(index-1, 1)
+                    return `**[MOD ACTION]** Removed ${removed[0].name} from the queue (was position ${index}).`
                 }
             },
             'volume': {
