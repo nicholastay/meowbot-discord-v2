@@ -119,10 +119,12 @@ class Handlers {
 
             if (this.commands[command].permissionLevel || this.commands[command].forcePermsLookup) {
                 // Basic permissions
-                // 0 = general nobody, 1 = server mod, 2 = server admin, 3 = bot admin
+                // 0 = general nobody, 1 = server mod, 2 = server admin, 8 = bot mod, 10 = bot admin
                 let perms = 0
                 if (Config.admins.indexOf(message.author.id) > -1) {
-                    perms = 3
+                    perms = 10
+                } else if (Config.mods.indexOf(message.author.id) > -1) {
+                    perms = 8
                 } else if (!message.private) {
                     if (message.channel.server.ownerID === message.author.id) {
                         perms = 2

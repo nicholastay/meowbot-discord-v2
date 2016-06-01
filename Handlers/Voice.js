@@ -250,7 +250,7 @@ class Voice {
             },
             'playdirectfile': {
                 description: 'Direct passthrough to .playFile() for admin',
-                permissionLevel: 3,
+                permissionLevel: 10,
                 hidden: true,
                 requireParams: true,
                 handler: async (params, author, channel, server) => {
@@ -445,7 +445,7 @@ class Voice {
             },
             'toggleservervoice': {
                 description: 'Toggles to allow/disallow the server to use the voice functionality.',
-                permissionLevel: 3,
+                permissionLevel: 10,
                 blockPM: true,
                 reply: true,
                 handler: async (params, author, channel, server) => {

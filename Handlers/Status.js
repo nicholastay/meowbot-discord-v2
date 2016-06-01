@@ -103,7 +103,7 @@ class Status {
         return {
             'statusrotate': {
                 description: 'Forces the status to rotate to the next one.',
-                permissionLevel: 3,
+                permissionLevel: 10,
                 reply: true,
                 handler: () => {
                     this.updateStatus()

@@ -23,7 +23,7 @@ class Admin {
             'exec': {
                 description: 'Executes a raw JavaScript command and returns the output.',
                 hidden: true,
-                permissionLevel: 3,
+                permissionLevel: 10,
                 requireParams: true,
                 requireParamsResponse: null,
                 handler: (params, author, channel, message) => {
@@ -52,7 +52,7 @@ class Admin {
             'setavatar': { /*eslint-enable no-unused-vars */
                 description: 'Sets the avatar of the bot using a file on the local system, or a url.',
                 hidden: true,
-                permissionLevel: 3,
+                permissionLevel: 10,
                 requireParams: true,
                 handler: async (params, author, channel) => {
                     let resource = params.join(' ')
@@ -72,7 +72,7 @@ class Admin {
             'setname': {
                 description: 'Changes the name of the bot itself.',
                 hidden: true,
-                permissionLevel: 3,
+                permissionLevel: 10,
                 requireParams: true,
                 handler: async (params) => {
                     return Discord.client.setUsername(params.join(' '))
@@ -81,7 +81,7 @@ class Admin {
             },
             'ignoreuser': {
                 description: 'Ignore those little 12vies who cannot control themselves from spamming the bot. (or unignore them...)',
-                permissionLevel: 3,
+                permissionLevel: 8,
                 requireParams: true,
                 reply: true,
                 handler: async (params, author, channel) => {
