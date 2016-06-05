@@ -151,15 +151,17 @@ class Commands {
                         return // yeah lets just ignore this
 
                     // globals can take priority
-                    if (this.globals[command])
-                        return Discord.sendMessage(channel, this.globals[command])
+                    let response
+                    if (this.globals[command]) {
+                        response = this.globals[command]
+                    } else {
+                        let dbResp = await Database.Commands.findOne({ command, server: server.id })
+                        if (!dbResp)
+                            return
+                        response = dbResp.response
+                    }
 
-                    let dbResp = await Database.Commands.findOne({ command, server: server.id })
-                    if (!dbResp)
-                        return
-
-                    let response = dbResp.response
-                      , name     = server.detailsOf(author).nick || author.name
+                    let name = server.detailsOf(author).nick || author.name
                     // if input dont allow blank
                     if ((response.indexOf('${input}') > -1) && !input)
                         return
