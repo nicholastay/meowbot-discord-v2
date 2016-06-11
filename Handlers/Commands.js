@@ -118,8 +118,8 @@ class Commands {
                       , serverId = server.id
 
                     if (command.startsWith('$g:')) {
-                        if (message.meowPerms < 3)
-                            return 'You do not have permissions to create a global MeowBot command.'
+                        if (message.meowPerms < 10)
+                            return 'You do not have permissions to remove a global MeowBot command.'
                         serverId = '$g'
                         command = command.substr(3)
                     }
