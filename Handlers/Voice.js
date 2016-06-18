@@ -1,5 +1,6 @@
 import ytdl from 'ytdl-core'
 import thenify from 'thenify'
+import axios from 'axios'
 
 import DiscordStreamIntent from 'discord.js/lib/Voice/StreamIntent'
 
@@ -10,6 +11,9 @@ import Database from '../Core/Database'
 import Tools from '../Core/Tools'
 
 ytdl.getInfoAsync = thenify(ytdl.getInfo) // promise wrapper
+
+const YOUTUBE_REGEX    = /youtu((be\.com\/watch\?v=)|(\.be\/))([A-Za-z0-9-_]+)/i
+    , SOUNDCLOUD_REGEX = /(snd\.sc\/[a-zA-Z0-9]+|soundcloud\.com\/[a-zA-Z0-9\-\.]+\/[a-zA-Z0-9\-\.]+)/i
 
 class VoiceConnection {
     // Internal bot class for managing each connection
@@ -293,15 +297,15 @@ class Voice {
                         }, server, data.meowPerms, `Added the URL **'${lookup}'** to the queue.`)
                     }
 
-                    let youtubeLookup = /youtu((be\.com\/watch\?v=)|(\.be\/))([A-Za-z0-9-_]+)/i.exec(lookup)
+                    let youtubeLookup = YOUTUBE_REGEX.exec(lookup)
                     if (youtubeLookup) {
                         // youtube
                         try {
-                            let info = await ytdl.getInfoAsync(`http://youtube.com/watch?v=${youtubeLookup[4]}`)
+                            let info   = await ytdl.getInfoAsync(`http://youtube.com/watch?v=${youtubeLookup[4]}`)
                               , stream = ytdl.downloadFromInfo(info, { quality: 140 })
                                              .on('error', e => {
                                                  if (e.code === 'ECONNRESET')
-                                                    return Discord.client.sendMessage(conn.textChannel, 'Hit a connection error to YouTube while trying to play the track, bot\'s connection to their servers may be unstable. Skipping to next video...')
+                                                     return Discord.client.sendMessage(conn.textChannel, 'Hit a connection error to YouTube while trying to play the track, bot\'s connection to their servers may be unstable. Skipping to next video...')
                                                  Logging.mlog('VoiceH', `YTDL stream error - ${e}`)
                                                  // Discord.client.sendMessage(this.textChannel, 'There was a backend error during playback... please try again later.')
                                              })
@@ -318,6 +322,24 @@ class Voice {
                         }
                     }
 
+                    if (Config.voice && Config.voice.soundcloud && Config.voice.soundcloud.clientId) {
+                        let soundcloudLookup = SOUNDCLOUD_REGEX.exec(lookup)
+                        if (soundcloudLookup) {
+                            // soundcloud
+                            let data = (await axios.get(`https://api.soundcloud.com/resolve?client_id=${Config.voice.soundcloud.clientId}&url=https://${soundcloudLookup[1]}`)).data
+                            if (data.errors)
+                                return 'Invalid SoundCloud link (in which case why would you do this to me ;-;) or having problems reaching the servers...'
+                            if (!data.streamable || !data.stream_url)
+                                return 'For some reason, this track is not able to be streamed off SoundCloud :(. Maybe try a different track?'
+                            return conn.addToQueue({
+                                file: data.stream_url,
+                                type: 'SoundCloud',
+                                name: `${data.title} (by ${data.user.username})`,
+                                length: Math.round(data.duration / 1000), // just need this in seconds
+                                requester: author
+                            }, server, data.meowPerms, `Added SoundCloud track **'${data.title}'** to the queue.`)
+                        }
+                    }
 
                     return `I do not know how to handle and play '${lookup}'. Please use a supported format.`
                 }
@@ -438,7 +460,7 @@ class Voice {
                 handler: (params, author, channel, server) => {
                     if (!this.connections[server.id])
                         return
-                    
+
                     this.connections[server.id].connection.stopPlaying()
                     return '**[MOD ACTION]** Forcefully skipped the currently playing track.'
                 }
