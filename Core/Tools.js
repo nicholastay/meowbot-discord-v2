@@ -1,4 +1,5 @@
 import Discord from './Discord'
+import Database from './Database'
 
 const Tools = {
     hotUnload: (filename) => {
@@ -72,7 +73,7 @@ const Tools = {
             await Database.Servers.remove({ server: server.id })
             return true
         }
-        
+
         return false
     }
 }

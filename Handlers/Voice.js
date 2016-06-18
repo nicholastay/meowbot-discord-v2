@@ -477,7 +477,7 @@ class Voice {
                         // Disable
                         delete(serverSettings.allowVoice)
                         await Database.Servers.update({ server: server.id }, { $unset: { allowVoice: true } }, { upsert: true })
-                        await Tools.deleteIfBlankDBRow(serverSettings)
+                        await Tools.deleteIfBlankDBRow(server, serverSettings)
                         return 'Voice functionality was disabled for this server.'
                     }
 

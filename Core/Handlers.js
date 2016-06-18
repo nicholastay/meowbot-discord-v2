@@ -59,10 +59,16 @@ class Handlers {
 
         // Check for channel ignores
         let ignoredChannels = serverSettings.ignoreChannels || []
-          , ignored         = false
+          , ignoredChannel  = false
         if (ignoredChannels.indexOf(message.channel.id) > -1) {
-            ignored = true // still wanna run some handlers, quiet shh
-            message.meowIgnored = true
+            ignoredChannel = true // still wanna run some handlers, quiet shh
+            message.meowIgnoredChannel = true
+        }
+        // Check for user ignores
+        let ignoredUser = false
+        if (this.ignoredUsers.indexOf(message.author.id) > -1) {
+            ignoredUser = true
+            message.meowIgnoredUser = true
         }
 
 
@@ -72,7 +78,7 @@ class Handlers {
                 // since this is a more crude handler, allow such behavior if explicitly set
                 if (message.self && !h.allowSelf)
                     continue
-                if (ignored && !h.allowIgnored)
+                if ((ignoredChannel || ignoredUser) && !h.allowIgnored)
                     continue
 
                 h.handler(message.content, message.author, message.channel, message.channel.server, message)
@@ -81,7 +87,7 @@ class Handlers {
 
 
         // Ignore this guy
-        if (this.ignoredUsers.indexOf(message.author.id) > -1)
+        if (ignoredUser)
             return
 
 
@@ -98,7 +104,7 @@ class Handlers {
             if (this.commands[command]._alias)
                 command = this.commands[command]._alias // switch context to alias
 
-            if (ignored && !this.commands[command].allowIgnored)
+            if ((ignoredUser || ignoredChannel) && !this.commands[command].allowIgnored)
                 return // nope dont run ignored here
 
             if (this.commands[command].requireParams) { // command requires some params
@@ -299,7 +305,7 @@ class Handlers {
 
     _loadunloadAll(unload) {
         Logging.mlog('Handlers', `${unload ? 'Unl' : 'L'}oading all handler(s)...`)
-        
+
         for (let handler of fs.readdirSync(path.join(__dirname, '../Handlers'))) {
             if (path.extname(handler) !== '.js')
                 continue // not a js

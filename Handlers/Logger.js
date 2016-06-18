@@ -97,8 +97,8 @@ class Logger {
     }
 
     logToConsole(message, author, channel, server, data) {
-        let msg = `${data.meowIgnored ? chalk.grey('[i] ') : ''}${data.meowEdited ? chalk.cyan('[e] ') : ''}${data.meowDeleted ? chalk.red('[x] ') : ''}${data.meowDeleted ? chalk.grey(data.cleanContent) : data.cleanContent}`
-        
+        let msg = `${data.meowIgnoredChannel ? chalk.grey('[iC] ') : ''}${data.meowEdited ? chalk.cyan('[e] ') : ''}${data.meowIgnoredUser ? chalk.grey('[iU] ') : ''}${data.meowEdited ? chalk.cyan('[e] ') : ''}${data.meowDeleted ? chalk.red('[x] ') : ''}${data.meowDeleted ? chalk.grey(data.cleanContent) : data.cleanContent}`
+
         if (data.cleanContent.includes('\n'))
             msg = `${msg.split('\n')[0]}... (newline break)`
 
