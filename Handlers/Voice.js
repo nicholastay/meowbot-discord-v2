@@ -2,134 +2,21 @@ import ytdl from 'ytdl-core'
 import thenify from 'thenify'
 import axios from 'axios'
 
-import DiscordStreamIntent from 'discord.js/lib/Voice/StreamIntent'
-
 import Config from '../Core/Config'
 import Discord from '../Core/Discord'
 import Logging from '../Core/Logging'
 import Database from '../Core/Database'
 import Tools from '../Core/Tools'
 
+import VoiceConnection from './Voice/VoiceConnection'
+import TwitchVoice from './Voice/TwitchVoice'
+
 ytdl.getInfoAsync = thenify(ytdl.getInfo) // promise wrapper
 
 const YOUTUBE_REGEX    = /youtu((be\.com\/watch\?v=)|(\.be\/))([A-Za-z0-9-_]+)/i
     , SOUNDCLOUD_REGEX = /(snd\.sc\/[a-zA-Z0-9]+|soundcloud\.com\/[a-zA-Z0-9\-\.]+\/[a-zA-Z0-9\-\.]+)/i
+    , TWITCH_REGEX     = /twitch\.tv\/([a-zA-Z0-9]\w{3,24})/i
 
-class VoiceConnection {
-    // Internal bot class for managing each connection
-    constructor(parent, connection, textChannel) {
-        this.parent = parent
-        this.connection = connection
-        this.textChannel = textChannel
-        this._nowPlaying = null
-        this._intent = null
-        this.queue = []
-        this.volume = 0.15
-
-        this._autoDisconnect = setTimeout(() => this.leave(true), 10 * 60 * 1000) // timeout for auto d/c
-        this.parent.timeouts.push(this._autoDisconnect)
-    }
-
-    get autoDisconnect() {
-        return this._autoDisconnect
-    }
-
-    set autoDisconnect(timeout) {
-        // ensure to clear the previous auto d/c from the main master
-        let i = this.parent.timeouts.indexOf(this._autoDisconnect)
-        if (i > -1) {
-            clearTimeout(this.parent.timeouts[i])
-            this.parent.timeouts.splice(i, 1)
-        }
-        this._autoDisconnect = null
-
-        if (timeout) { // truthy = timeout
-            this.parent.timeouts.push(timeout) // must be kept track
-            this._autoDisconnect = timeout
-        }
-    }
-
-    get intent() {
-        return this._intent
-    }
-
-    set intent(intent) {
-        if (intent instanceof DiscordStreamIntent) {
-            intent.on('end', () => {
-                this.nowPlaying = null
-
-                if (this.voting) {
-                    Discord.sendMessage(this.textChannel, `The vote started by ${this.voting.author.name} has been cancelled, as the track has now stopped playing.`)
-                    clearTimeout(this.votingTimeout)
-                    this.voting = null
-                }
-
-                this.playNext()
-                this.intent = null
-            })
-        }
-        this._intent = intent
-    }
-
-    get nowPlaying() {
-        return this._nowPlaying
-    }
-
-    set nowPlaying(data) {
-        if (data)
-            Discord.sendMessage(this.textChannel, `**Now Playing**: **[${data.type}] ${data.name}** *(requested by ${data.requester.name})*`)
-
-        this._nowPlaying = data
-    }
-
-    async addToQueue(data, server, permissionLevel, customMsg) {
-        if (this.queue.length+1 >= this.parent.queueLimit)
-            return 'Cannot queue any more tracks as we have already hit the limit set by my admin, sorry!'
-
-        let serverLimit = ((await Database.Servers.findOne({ server: server.id })) || {}).voiceQueueLimit || 10
-        if (permissionLevel < 1 && this.queue.length+1 >= serverLimit)
-            return 'You have already reached your limit on this server to queue tracks, please calm down, eat a sandwich and try again later!'
-
-        this.queue.push(data)
-        if (!this.nowPlaying)
-            this.playNext()
-
-        return customMsg
-    }
-
-    async playNext() {
-        if (!Discord.client.voiceConnection)
-            return
-
-        let nowPlay = this.queue.shift()
-        if (!nowPlay) {
-            Discord.sendMessage(this.textChannel, 'There are no more items in the queue, playback has now stopped.')
-            this.autoDisconnect = setTimeout(() => this.leave(true), 10 * 60 * 1000) // 10 mins auto d/c
-        }
-
-        if (nowPlay.file)
-            this.intent = await this.connection.playFile(nowPlay.file, { volume: this.volume })
-        else
-            this.intent = await this.connection.playRawStream(nowPlay.stream, { volume: this.volume })
-
-        this.nowPlaying = nowPlay
-        if (this.autoDisconnect)
-            this.autoDisconnect = null // playing (setter clears timeout)
-    }
-
-    leave(auto) { // kill self
-        if (auto)
-            Discord.sendMessage(this.textChannel, 'It has been 10mins since I have been used, leaving voice channel...')
-
-        return Discord.client.leaveVoiceChannel(this.connection)
-                             .then(() => {
-                                 this.autoDisconnect = null // make sure setter clears this
-                                 delete(this.parent.connections[this.textChannel.server.id])
-                                 return Discord.sendMessage(this.textChannel, 'Left the voice channel.')
-                             })
-                             .catch(e => { return Discord.sendMessage(this.textChannel, `There was an error leaving voice... *${e}*`) })
-    }
-}
 
 class Voice {
     constructor() {
@@ -151,6 +38,8 @@ class Voice {
 
         if (Config.voice && Config.voice.queueLimit)
             this.queueLimit = Config.voice.queueLimit
+
+        this.twitchCapability = TwitchVoice.checkCapability()
     }
 
     get commands() {
@@ -338,6 +227,20 @@ class Voice {
                                 length: Math.round(data.duration / 1000), // just need this in seconds
                                 requester: author
                             }, server, data.meowPerms, `Added SoundCloud track **'${data.title}'** to the queue.`)
+                        }
+                    }
+
+                    if (this.twitchCapability) {
+                        let twitchLookup = TWITCH_REGEX.exec(lookup)
+                        if (twitchLookup) {
+                            if (data.meowPerms < 10) // req server owner
+                                return 'Sorry, only my owner can queue twitch audio streams as it is very intensive on my workload and internet connection D:'
+                            return conn.addToQueue({
+                                twitch: twitchLookup[1],
+                                type: 'Twitch',
+                                name: twitchLookup[1],
+                                requester: author
+                            }, server, data.meowPerms, `Added Twitch stream **'${twitchLookup[1]}'** to the queue.`)
                         }
                     }
 
