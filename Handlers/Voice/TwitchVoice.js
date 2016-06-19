@@ -4,16 +4,16 @@ import cpoc from 'child_process'
 
 class TwitchVoice {
     // this stuff *loosely* based off discord.js's own AudioEncoder
-    checkCapability() {
+    static checkCapability() {
         let c = cpoc.spawnSync('livestreamer')
         if (c.error)
             return false
         return true
     }
 
-    getNodeStream(channel) {
+    static getNodeStream(channel) {
         return new Promise((resolve, reject) => {
-            Logging.mlog('Voice/Twitch', `Spawning livestreamer for twitch audio stream of: '${channel}'`)
+            Logging.mlog('VoiceH/Twitch', `Spawning livestreamer for twitch audio stream of: '${channel}'`)
             let proc = cpoc.spawn('livestreamer', [
                 '-O', '-Q', // stdout, quiet
                 `twitch.tv/${channel}`, 'audio'
@@ -27,7 +27,7 @@ class TwitchVoice {
             }
 
             proc.stdout.once('readable', () => {
-                Logging.mlog('Voice/Twitch', `'${channel}' stream should be good to go, resolving`)
+                Logging.mlog('VoiceH/Twitch', `'${channel}' stream should be good to go, resolving`)
                 resolve(data)
             })
 
@@ -36,16 +36,16 @@ class TwitchVoice {
         })
     }
 
-    cleanup(data, err) {
+    static cleanup(data, err) {
         if (data.killed)
             return
 
         if (err)
-            Logging.mlog('Voice/Twitch', `There was an error with twitch audio stream of '${data.channel}' - \n${err}`)
-        Logging.mlog('Voice/Twitch', `Cleaning up livestreamer process for twitch stream: '${data.channel}'`)
+            Logging.mlog('VoiceH/Twitch', `There was an error with twitch audio stream of '${data.channel}' - \n${err}`)
+        Logging.mlog('VoiceH/Twitch', `Cleaning up livestreamer process for twitch stream: '${data.channel}'`)
         data.proc.kill('SIGKILL')
         data.killed = true
     }
 }
 
-export default new TwitchVoice
+export default TwitchVoice
