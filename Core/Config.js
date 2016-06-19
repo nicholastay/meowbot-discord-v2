@@ -1,4 +1,3 @@
-import Tools from './Tools'
 import Logging from './Logging'
 
 let _keys = []
@@ -23,7 +22,7 @@ class Config {
                     delete(this[k])
             }
 
-            if (Tools.hotUnload('../config'))
+            if (require('./Tools').hotUnload('../config'))
                 Logging.mlog('Config', 'Config unloaded.')
         }
 

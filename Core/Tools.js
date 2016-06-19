@@ -1,15 +1,29 @@
 import Discord from './Discord'
 import Database from './Database'
 
-const Tools = {
-    hotUnload: (filename) => {
+class Tools {
+    constructor() {
+        this._REPLCommands = {
+            'rt': {
+                help: '[Tools] Unloads self, on next load will be reloaded.',
+                action: () => {
+                    Tools.hotUnload(require('path').join(__dirname, 'Tools'))
+                    require('./Repl').register('Tools')
+                    require('./Logging').mlog('Tools', 'Reloaded tools.')
+                }
+            }
+        }
+    }
+
+    static hotUnload(filename) {
         if (require.cache[require.resolve(filename)]) {
             delete(require.cache[require.resolve(filename)])
             return true
         }
         return false
-    },
-    checkOwnPermissions: (server, permissions) => {
+    }
+
+    static checkOwnPermissions(server, permissions) {
         let role         = server.rolesOfUser(Discord.client.user).find(r => r.name === 'Meow')
           , missingRoles = []
 
@@ -25,21 +39,25 @@ const Tools = {
             missingRoles = null
 
         return missingRoles
-    },
-    camelToSpaced: (str) => {
+    }
+
+    static camelToSpaced(str) {
         // https://stackoverflow.com/questions/4149276/javascript-camelcase-to-regular-form
         return str.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => { return str.toUpperCase() })
-    },
-    reverse: (str) => {
+    }
+
+    static reverse(str) {
         return str.split('').reverse().join('')
-    },
-    reflect: (promise) => {
+    }
+
+    static reflect(promise) {
         // Promise reflecting
         // https://stackoverflow.com/questions/31424561/wait-until-all-es6-promises-complete-even-rejected-promises
         return promise.then((v) => { return { v, status: 'resolved' }},
                             (e) => { return { e, status: 'rejected' }})
-    },
-    resolveMention: (mention, channel) => {
+    }
+
+    static resolveMention(mention, channel) {
         // Resolves A SINGLE mention with the internal discord.js resolver IF THE MENTION IS VALID (save some cpu, eh? ...)
         if (/^<@!?\d+>$/.test(mention)) {
             // User mention
@@ -64,11 +82,13 @@ const Tools = {
         }
 
         return null
-    },
-    getRandomInt: (min, max) => { // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+    }
+
+    static getRandomInt(min, max) { // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
         return Math.floor(Math.random() * (max - min)) + min
-    },
-    deleteIfBlankDBRow: async (row) => { // Detect a blank row, only these two columns should be filled
+    }
+
+    static async deleteIfBlankDBRow(server, row) { // Detect a blank row, only these two columns should be filled
         if ('server' in row && '_id' in row) {
             await Database.Servers.remove({ server: server.id })
             return true
@@ -78,17 +98,4 @@ const Tools = {
     }
 }
 
-
-Tools._REPLCommands = {
-    'rt': {
-        help: '[Tools] Unloads self, on next load will be reloaded.',
-        action: () => {
-            Tools.hotUnload(require('path').join(__dirname, 'Tools'))
-            require('./Repl').register('Tools')
-            require('./Logging').mlog('Tools', 'Reloaded tools.')
-        }
-    }
-}
-
-
-export default Tools
+export default new Tools
