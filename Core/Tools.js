@@ -2,19 +2,6 @@ import Discord from './Discord'
 import Database from './Database'
 
 class Tools {
-    constructor() {
-        this._REPLCommands = {
-            'rt': {
-                help: '[Tools] Unloads self, on next load will be reloaded.',
-                action: () => {
-                    Tools.hotUnload(require('path').join(__dirname, 'Tools'))
-                    require('./Repl').register('Tools')
-                    require('./Logging').mlog('Tools', 'Reloaded tools.')
-                }
-            }
-        }
-    }
-
     static hotUnload(filename) {
         if (require.cache[require.resolve(filename)]) {
             delete(require.cache[require.resolve(filename)])
@@ -98,4 +85,4 @@ class Tools {
     }
 }
 
-export default new Tools
+export default Tools
