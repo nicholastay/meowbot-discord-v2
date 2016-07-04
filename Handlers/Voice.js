@@ -155,23 +155,27 @@ class Voice {
                         return
 
                     let file = params.join(' ')
-                      , name = file.split('/').pop()
-
-                    // try get idv3 tag
-                    let length
+                      , name
+                      , length
                     try {
-                        let tagData = await musicmetadataAsync(fs.createReadStream(file))
-                          , title   = tagData.title
+                        fs.accessSync(file, fs.F_OK) // should throw if error, so we should just direct pass param
+                        name = file.split('/').pop()
+                        // try get idv3 tag
+                        try {
+                            let tagData = await musicmetadataAsync(fs.createReadStream(file))
+                              , title   = tagData.title
 
-                        if (title) { // if no title then dw
-                            let artist  = tagData.artist.length > 0 ? tagData.artist.join('/') : null
-                              , album   = tagData.album
-                            name = `${artist || 'Unknown Artist'}${album ? ` (${album})` : ''} - ${title}`
-                            if (tagData.duration)
-                                length = Math.round(duration)
+                            if (title) { // if no title then dw
+                                let artist  = tagData.artist.length > 0 ? tagData.artist.join('/') : null
+                                  , album   = tagData.album
+                                name = `${artist || 'Unknown Artist'}${album ? ` (${album})` : ''} - ${title}`
+                                if (tagData.duration)
+                                    length = Math.round(duration)
+                            }
                         }
+                        catch (e) {}
                     }
-                    catch (e) {}
+                    catch (e) { name = file } // direct passthru, not a file
 
                     this.connections[server.id].addToQueue({
                         file,
