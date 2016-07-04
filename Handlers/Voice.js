@@ -117,7 +117,7 @@ class Voice {
 
                     let progress   = null // progress bar for yt videos
                       , connection = this.connections[server.id]
-                    if (connection.nowPlaying.type === 'YouTube' && connection.nowPlaying.length) {
+                    if (connection.nowPlaying.length) {
                         let nowSeconds = Math.floor(connection.connection.streamTime / 1000) // to secs
                           , vidLength  = connection.nowPlaying.length
                           , vidMins    = String(vidLength % 60)
