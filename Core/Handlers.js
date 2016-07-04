@@ -32,7 +32,7 @@ class Handlers {
             }
         }
 
-        Events.on('chat.message', m => this.handleMessage(m).catch(Logging.log))
+        Events.on('chat.message', m => this.handleMessage(m).catch(e => Logging.log(e.stack || e)))
 
         try {
             let ignoreData = fs.readFileSync(path.join(Database._storesPath, 'ignored_users.txt'), 'utf8')
@@ -127,9 +127,9 @@ class Handlers {
                 // Basic permissions
                 // 0 = general nobody, 1 = server mod, 2 = server admin, 8 = bot mod, 10 = bot admin
                 let perms = 0
-                if (Config.admins.indexOf(message.author.id) > -1) {
+                if (Config.admins && Config.admins.indexOf(message.author.id) > -1) {
                     perms = 10
-                } else if (Config.mods.indexOf(message.author.id) > -1) {
+                } else if (Config.mods && Config.mods.indexOf(message.author.id) > -1) {
                     perms = 8
                 } else if (!message.private) {
                     if (message.channel.server.ownerID === message.author.id) {
@@ -167,7 +167,7 @@ class Handlers {
             }
             if (h instanceof String || typeof h === 'string') {
                 return Discord[r ? 'reply' : 'sendMessage'](message, h)
-                              .catch(e => Logging.log(e.stack))
+                              .catch(e => Logging.log(e.stack || e))
             }
         }
     }
