@@ -72,7 +72,7 @@ class VoiceConnection {
         this._nowPlaying = data
     }
 
-    async addToQueue(data, server, permissionLevel, customMsg) {
+    async addToQueue(data, server, permissionLevel) {
         if (this.queue.length+1 >= this.parent.queueLimit)
             return 'Cannot queue any more tracks as we have already hit the limit set by my admin, sorry!'
 
@@ -84,7 +84,7 @@ class VoiceConnection {
         if (!this.nowPlaying)
             this.playNext()
 
-        return customMsg
+        return true
     }
 
     async playNext() {

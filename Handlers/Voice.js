@@ -177,13 +177,14 @@ class Voice {
                     }
                     catch (e) { name = file } // direct passthru, not a file
 
-                    this.connections[server.id].addToQueue({
+                    await this.connections[server.id].addToQueue({
                         file,
                         name,
                         type: 'LOCAL',
                         length,
                         requester: author
-                    }, server, 3, `**[ADMIN ACTION]** - Added a local file to queue: ${params.join(' ').split('/').pop()}`)
+                    }, server, 3)
+                    return `**[ADMIN ACTION]** - Added a local file to queue: ${params.join(' ').split('/').pop()}`
                 }
             },
             'play': {
@@ -204,12 +205,13 @@ class Voice {
                     let urlmp3Lookup = /^https?:\/\/(.*)\/(.*?)\.mp3$/i.exec(lookup)
                     if (urlmp3Lookup) {
                         // url
-                        return conn.addToQueue({
+                        await conn.addToQueue({
                             file: lookup, // pass url direct to ffmpeg
                             type: 'URL-MP3',
                             name: `${urlmp3Lookup[2]}.mp3`,
                             requester: author
-                        }, server, data.meowPerms, `Added the URL **'${lookup}'** to the queue.`)
+                        }, server, data.meowPerms)
+                        return `Added the URL **'${lookup}'** to the queue.`
                     }
 
                     let youtubeLookup = YOUTUBE_REGEX.exec(lookup)
@@ -224,13 +226,14 @@ class Voice {
                                                  Logging.mlog('VoiceH', `YTDL stream error - ${e}`)
                                                  // Discord.client.sendMessage(this.textChannel, 'There was a backend error during playback... please try again later.')
                                              })
-                            return conn.addToQueue({
+                            await conn.addToQueue({
                                 stream, // 140 = opus audio
                                 type: 'YouTube',
                                 name: info.title && info.author ? `${info.title} (by ${info.author})` : `Video ID ${youtubeLookup[4]} [was unable to get metadata]`,
                                 length: info.length_seconds,
                                 requester: author
-                            }, server, data.meowPerms, `Added YouTube video **'${info.title}'** to the queue.`)
+                            }, server, data.meowPerms)
+                            return `Added YouTube video **'${info.title}'** to the queue.`
                         }
                         catch (e) {
                             return 'Invalid YouTube link (in which case you are a jerk) or having problems connecting with the YouTube server...'
@@ -246,13 +249,14 @@ class Voice {
                                 return 'Invalid SoundCloud link (in which case why would you do this to me ;-;) or having problems reaching the servers...'
                             if (!data.streamable || !data.stream_url)
                                 return 'For some reason, this track is not able to be streamed off SoundCloud :(. Maybe try a different track?'
-                            return conn.addToQueue({
+                            await conn.addToQueue({
                                 file: data.stream_url,
                                 type: 'SoundCloud',
                                 name: `${data.title} (by ${data.user.username})`,
                                 length: Math.round(data.duration / 1000), // just need this in seconds
                                 requester: author
-                            }, server, data.meowPerms, `Added SoundCloud track **'${data.title}'** to the queue.`)
+                            }, server, data.meowPerms)
+                            return `Added SoundCloud track **'${data.title}'** to the queue.`
                         }
                     }
 
@@ -261,12 +265,13 @@ class Voice {
                         if (twitchLookup) {
                             if (data.meowPerms < 10) // req server owner
                                 return 'Sorry, only my owner can queue twitch audio streams as it is very intensive on my workload and internet connection D:'
-                            return conn.addToQueue({
+                            await conn.addToQueue({
                                 twitch: twitchLookup[1],
                                 type: 'Twitch',
                                 name: twitchLookup[1],
                                 requester: author
-                            }, server, data.meowPerms, `Added Twitch stream **'${twitchLookup[1]}'** to the queue.`)
+                            }, server, data.meowPerms)
+                            return `Added Twitch stream **'${twitchLookup[1]}'** to the queue.`
                         }
                     }
 
