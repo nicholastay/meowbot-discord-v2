@@ -1,6 +1,8 @@
 import ytdl from 'ytdl-core'
 import thenify from 'thenify'
 import axios from 'axios'
+import musicmetadata from 'musicmetadata'
+import fs from 'fs'
 
 import Config from '../Core/Config'
 import Discord from '../Core/Discord'
@@ -11,7 +13,9 @@ import Tools from '../Core/Tools'
 import VoiceConnection from './Voice/VoiceConnection'
 import TwitchVoice from './Voice/TwitchVoice'
 
-ytdl.getInfoAsync = thenify(ytdl.getInfo) // promise wrapper
+// promise wrappers
+ytdl.getInfoAsync = thenify(ytdl.getInfo)
+const musicmetadataAsync = thenify(musicmetadata)
 
 const YOUTUBE_REGEX    = /youtu((be\.com\/watch\?v=)|(\.be\/))([A-Za-z0-9-_]+)/i
     , SOUNDCLOUD_REGEX = /(snd\.sc\/[a-zA-Z0-9]+|soundcloud\.com\/[a-zA-Z0-9\-\.]+\/[a-zA-Z0-9\-\.]+)/i
@@ -152,10 +156,28 @@ class Voice {
 
                     let file = params.join(' ')
                       , name = file.split('/').pop()
+
+                    // try get idv3 tag
+                    let length
+                    try {
+                        let tagData = await musicmetadataAsync(fs.createReadStream(file))
+                          , title   = tagData.title
+
+                        if (title) { // if no title then dw
+                            let artist  = tagData.artist.length > 0 ? tagData.artist.join('/') : null
+                              , album   = tagData.album
+                            name = `${artist || 'Unknown Artist'}${album ? ` (${album})` : ''} - ${title}`
+                            if (tagData.duration)
+                                length = Math.round(duration)
+                        }
+                    }
+                    catch (e) {}
+
                     this.connections[server.id].addToQueue({
                         file,
                         name,
                         type: 'LOCAL',
+                        length,
                         requester: author
                     }, server, 3, `**[ADMIN ACTION]** - Added a local file to queue: ${params.join(' ').split('/').pop()}`)
                 }
