@@ -156,14 +156,22 @@ class Handlers {
               , r = this.commands[command].reply
 
             if (h instanceof Promise) {
-                // async function start typing in case it takes a while
-                Discord.client.startTyping(message.channel)
-                return h.then(p => { if (p) Discord[r ? 'reply' : 'sendMessage'](message, p) })
+                // start typing if it takes longer than 150ms to resolve
+                let typeTimeout = setTimeout(() => Discord.client.startTyping(message.channel), 150)
+                return h.then(p => {
+                            if (!typeTimeout._called) // _called, internal. tells us if the timeout has fired already. in this case we need to clear it because resolved in <150ms
+                                clearTimeout(typeTimeout)
+                            if (p)
+                                Discord[r ? 'reply' : 'sendMessage'](message, p)
+                        })
                         .catch(e => {
                             Logging.log(util.inspect(e.stack || e))
                             Discord.sendMessage(message, `An error occurred... - \`${e}\``)
                         })
-                        .finally(() => setTimeout(() => Discord.client.stopTyping(message.channel), 450))
+                        .finally(() => {
+                            if (typeTimeout._called) // we cant stop if we havent started.
+                                Discord.client.stopTyping(message.channel)
+                        })
             }
             if (h instanceof String || typeof h === 'string') {
                 return Discord[r ? 'reply' : 'sendMessage'](message, h)
