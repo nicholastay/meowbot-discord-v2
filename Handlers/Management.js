@@ -306,6 +306,8 @@ ${commits.map(c => {
                                       .catch(() => {
                                           return 'Could not move members between voice channels. Maybe there is a Discord server problem...'
                                       })
+                    } else {
+                        return `Successfully moved all members: ${fromV.name} --> ${toV.name}`
                     }
                 }
             }
