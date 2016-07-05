@@ -252,6 +252,62 @@ ${commits.map(c => {
 
                     return 'The channel is now being monitored again by MeowBot.'
                 }
+            },
+            'voicemoveall': {
+                description: 'Moves all people in one voice channel to another in a server. Split the two voice channels by using ` || `',
+                permissionLevel: 1,
+                blockPM: true,
+                noPermissionsResponse: 'You require to at least be a server mod to move all users from a voice channel to another.',
+                handler: async (_params, author, channel, server) => {
+                    if (!_params[0])
+                        return 'You need to specify at least one channel!'
+
+                    let params = _params.join(' ').split(' || ')
+                    if (params.length < 1)
+                        return 'You need to specify at least one channel!'
+
+                    let fromV
+                      , toV
+                    if (params.length < 2) {
+                        fromV = author.voiceChannel
+                        if (!fromV || fromV.server.id !== server.id)
+                            return 'You are not in a voice channel in this server, you cannot just move <to>!'
+                        toV = resolveVoiceNameOrId(server, params[0])
+                        if (!toV)
+                            return 'You need to specify a valid voice channel on this server to move <to>!'
+                    } else {
+                        fromV = resolveVoiceNameOrId(server, params[0])
+                        if (!fromV)
+                            return 'You need to specify a valid voice channel to move <from>!'
+                        toV = resolveVoiceNameOrId(server, params[1])
+                        if (!toV)
+                            return 'You need to specify a valid voice channel to move <to>!'
+                    }
+
+                    if (fromV.members.length < 1)
+                        return 'The voice channel to move <from> does not have any users to move!'
+
+                    // try move ONE user first, and if that doesnt work assume no perms or something
+                    try {
+                        await Discord.client.moveMember(fromV.members[0], toV)
+                    } catch (e) {
+                        return 'Could not move members between voice channels. Maybe there is a Discord server problem, or I don\'t have permissions :('
+                    }
+
+                    if (fromV.members.length > 0) {// if there are actually still members
+                        let promises = []
+                        for (let m of fromV.members)
+                            promises.push(Tools.reflect(Discord.client.moveMember(m, toV)))
+                        return Promise.all(promises)
+                                      .then(res => {
+                                          let done = res.filter(x => x.status === 'rejected').length
+                                          return `Successfully moved ${done > 0 ? 'some' : 'all'} members: ${fromV.name} --> ${toV.name}${done > 0 ? ` *(failed to move ${done} member(s)).*` : ''}`
+                                      })
+                                      .catch(() => {
+                                          return 'Could not move members between voice channels. Maybe there is a Discord server problem...'
+                                      })
+                    }
+                }
             }
         }
     }
@@ -264,6 +320,12 @@ function fancyPrintPerms(missingPerms) {
     }
     return `I am missing the following permissions on this server -
 \`\`\`${formatted}\`\`\`Please ensure I have a role named 'Meow' and these permissions before using the command again.`
+}
+
+function resolveVoiceNameOrId(server, str) {
+    if (str.startsWith('id#'))
+        return server.channels.get('id', str.replace('id#', ''))
+    return server.channels.get('name', str)
 }
 
 export default new Management
