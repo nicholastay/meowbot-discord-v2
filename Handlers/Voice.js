@@ -117,9 +117,9 @@ class Voice {
 
                     let progress   = null // progress bar for yt videos
                       , connection = this.connections[server.id]
-                    if (connection.nowPlaying.length) {
+                    if (connection.nowPlaying.duration) {
                         let nowSeconds = Math.floor(connection.connection.streamTime / 1000) // to secs
-                          , vidLength  = connection.nowPlaying.length
+                          , vidLength  = connection.nowPlaying.duration
                           , vidMins    = String(vidLength % 60)
                           , nowMins    = String(nowSeconds % 60)
 
@@ -156,13 +156,13 @@ class Voice {
 
                     let file = params.join(' ')
                       , name
-                      , length
+                      , duration
                     try {
                         fs.accessSync(file, fs.F_OK) // should throw if error, so we should just direct pass param
                         name = file.split('/').pop()
                         // try get idv3 tag
                         try {
-                            let tagData = await musicmetadataAsync(fs.createReadStream(file))
+                            let tagData = await musicmetadataAsync(fs.createReadStream(file), { duration: true })
                               , title   = tagData.title
 
                             if (title) { // if no title then dw
@@ -170,7 +170,7 @@ class Voice {
                                   , album   = tagData.album
                                 name = `${artist || 'Unknown Artist'}${album ? ` (${album})` : ''} - ${title}`
                                 if (tagData.duration)
-                                    length = Math.round(duration)
+                                    duration = Math.round(tagData.duration)
                             }
                         }
                         catch (e) {}
@@ -181,7 +181,7 @@ class Voice {
                         file,
                         name,
                         type: 'LOCAL',
-                        length,
+                        duration,
                         requester: author
                     }, server, 3)
                     return `**[ADMIN ACTION]** - Added a local file to queue: ${params.join(' ').split('/').pop()}`
@@ -230,7 +230,7 @@ class Voice {
                                 stream, // 140 = opus audio
                                 type: 'YouTube',
                                 name: info.title && info.author ? `${info.title} (by ${info.author})` : `Video ID ${youtubeLookup[4]} [was unable to get metadata]`,
-                                length: info.length_seconds,
+                                duration: info.length_seconds,
                                 requester: author
                             }, server, data.meowPerms)
                             return `Added YouTube video **'${info.title}'** to the queue.`
@@ -253,7 +253,7 @@ class Voice {
                                 file: data.stream_url,
                                 type: 'SoundCloud',
                                 name: `${data.title} (by ${data.user.username})`,
-                                length: Math.round(data.duration / 1000), // just need this in seconds
+                                duration: Math.round(data.duration / 1000), // just need this in seconds
                                 requester: author
                             }, server, data.meowPerms)
                             return `Added SoundCloud track **'${data.title}'** to the queue.`
