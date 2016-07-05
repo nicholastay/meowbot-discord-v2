@@ -75,8 +75,16 @@ class Voice {
                         return 'You need to specify a voice channel for me to join!'
                     //if (Discord.client.voiceConnection) return 'I am currently in a voice channel of another channel/server, sorry!'
 
-                    let chanName   = params.join(' ')
-                      , voiceChan  = server.channels.find(c => c.type === 'voice' && c.name === chanName)
+                    let chanName = params.join(' ')
+                      , voiceChan
+                    if (chanName === '${me}') {
+                        voiceChan = author.voiceChannel
+                        if (voiceChan.server && voiceChan.server.id !== server.id)
+                            voiceChan = null
+                    } else {
+                        voiceChan = server.channels.find(c => c.type === 'voice' && c.name === chanName)
+                    }
+                    
                     if (!voiceChan)
                         return 'Invalid voice channel specified for this server! Ensure you have spelt it correctly.'
 
